@@ -1,5 +1,6 @@
 class Game:
     def __init__(self):
+        # (upper storage) (6 upper houses) (lower storage) (6 lower houses)
         self.board = [0, 4, 4, 4, 4, 4, 4, 0, 4, 4, 4, 4, 4, 4]
         self.upper_player_move = False
 
