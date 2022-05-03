@@ -31,12 +31,12 @@ def draw():
 
 
 def on_mouse_down(pos):
-    if btn_roll.collidepoint(pos):
+    if not pig.game_over() and btn_roll.collidepoint(pos):
         pig.roll_dice()
         if pig.dice == 1:
             pig.pass_turn()
 
-    if btn_end.collidepoint(pos):
+    if not pig.game_over() and btn_end.collidepoint(pos):
         pig.pass_turn()
 
 

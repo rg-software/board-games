@@ -18,7 +18,8 @@ r = "\n|Name|BGG Rating|Core LOC|GUI value|Extra players|Category|CS topics|\n"
 r += "|---|---|---|---|---|---|---|\n"
 
 for row in list(sheet.rows())[1:]:
-    r += f"|[{bgg_link}]({row[cols.BGG]})[{wiki_link}]({row[cols.Wiki]})&nbsp;{row[cols.Name]}|"
+    r += f"|[{bgg_link}]({row[cols.BGG]})[{wiki_link}]({row[cols.Wiki]})&nbsp;"
+    r += f"[{row[cols.Name]}](/{row[cols.Folder]}/readme.md)|"
     r += f"{row[cols.BGGRating]}|{row[cols.CoreLOC]}|{row[cols.GUIvalue]}|{row[cols.Extraplayers]}|"
     r += f"{row[cols.Category]}|{row[cols.CStopics]}|\n"
 
