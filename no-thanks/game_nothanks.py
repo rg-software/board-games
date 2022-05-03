@@ -29,7 +29,7 @@ class Player:
 
 
 class Game:
-    PlayersCount = 2
+    PlayersCount = 3
     TokensCount = 11
 
     def __init__(self):

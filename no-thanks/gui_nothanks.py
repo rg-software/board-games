@@ -51,8 +51,8 @@ def draw():
         color="black",
     )
 
-    draw_hand(game.players[0], 50, 200, 30, 20, game.current_player == 0)
-    draw_hand(game.players[1], 50, 300, 30, 20, game.current_player == 1)
+    for i, player in enumerate(game.players):
+        draw_hand(player, 50, 200 + i * 100, 30, 20, game.current_player == i)
 
 
 def on_mouse_down(pos):
