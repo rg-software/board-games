@@ -1,0 +1,4 @@
+[MASTER]
+disable=C0114,C0116,C0115
+good-names-rgxs=^[_a-z][_a-z0-9]?$
+additional-builtins=screen,Actor
