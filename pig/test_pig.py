@@ -1,7 +1,7 @@
 from game_pig import Game
 
 
-class TestGame(Game):
+class GameExt(Game):
     def __init__(self, rndlist):
         super().__init__()
         self._rndlist = rndlist
@@ -11,7 +11,7 @@ class TestGame(Game):
 
 
 def test_accumulate_ok():
-    pig = TestGame([3, 6, 2, 1])
+    pig = GameExt([3, 6, 2, 1])
 
     pig.roll_dice()
     pig.roll_dice()
@@ -26,7 +26,7 @@ def test_accumulate_ok():
 
 
 def test_accumulate_then_fail():
-    pig = TestGame([3, 6, 2, 1])
+    pig = GameExt([3, 6, 2, 1])
 
     pig.roll_dice()
     pig.roll_dice()
@@ -40,7 +40,7 @@ def test_accumulate_then_fail():
 
 
 def test_game_over():
-    pig = TestGame([5] * 20)
+    pig = GameExt([5] * 20)
 
     for _ in range(20):
         pig.roll_dice()

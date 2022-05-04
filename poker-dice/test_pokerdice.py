@@ -1,7 +1,7 @@
 from game_pokerdice import Player
 
 
-class TestPlayer(Player):
+class PlayerExt(Player):
     def __init__(self, rndlist):
         super().__init__()
         self._rndlist = rndlist
@@ -11,7 +11,7 @@ class TestPlayer(Player):
 
 
 def test_roll_and_freeze():
-    p = TestPlayer([0, 0, 0, 0, 0, 1, 1, 1, 1, 1])
+    p = PlayerExt([0, 0, 0, 0, 0, 1, 1, 1, 1, 1])
 
     p.roll_dice()
     p.freeze(0)
