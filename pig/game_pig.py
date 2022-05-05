@@ -6,17 +6,17 @@ class Game:
         self.score = [0, 0]
         self.current_player = 0
         self.table = 0
-        self.dice = 0
+        self.die = 0
 
     def _genrand(self):
         return random.randint(1, 6)
 
-    def roll_dice(self):
-        self.dice = self._genrand()
-        self.table += self.dice
+    def roll_die(self):
+        self.die = self._genrand()
+        self.table += self.die
 
     def pass_turn(self):
-        if self.dice != 1:
+        if self.die != 1:
             self.score[self.current_player] += self.table
         self.table = 0
         self.current_player = not self.current_player

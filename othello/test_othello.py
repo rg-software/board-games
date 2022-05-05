@@ -1,4 +1,3 @@
-from tkinter.messagebox import NO
 from game_othello import Game
 
 

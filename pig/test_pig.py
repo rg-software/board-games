@@ -13,9 +13,9 @@ class GameExt(Game):
 def test_accumulate_ok():
     pig = GameExt([3, 6, 2, 1])
 
-    pig.roll_dice()
-    pig.roll_dice()
-    pig.roll_dice()
+    pig.roll_die()
+    pig.roll_die()
+    pig.roll_die()
     assert pig.table == 3 + 6 + 2
 
     pig.pass_turn()
@@ -28,10 +28,10 @@ def test_accumulate_ok():
 def test_accumulate_then_fail():
     pig = GameExt([3, 6, 2, 1])
 
-    pig.roll_dice()
-    pig.roll_dice()
-    pig.roll_dice()
-    pig.roll_dice()
+    pig.roll_die()
+    pig.roll_die()
+    pig.roll_die()
+    pig.roll_die()
     pig.pass_turn()
 
     assert pig.table == 0
@@ -43,7 +43,7 @@ def test_game_over():
     pig = GameExt([5] * 20)
 
     for _ in range(20):
-        pig.roll_dice()
+        pig.roll_die()
 
     pig.pass_turn()
     assert pig.game_over()
