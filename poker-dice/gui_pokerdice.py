@@ -4,6 +4,7 @@ from game_pokerdice import Game
 
 WIDTH = 1000
 HEIGHT = 750
+TITLE = "Poker Dice"
 
 game = Game()
 btn_roll = Actor("btn_roll", (100, 50))
@@ -69,6 +70,7 @@ def on_mouse_down(pos):
 
     if game.current_player().can_roll() and btn_roll.collidepoint(pos):
         game.current_player().roll_dice()
+        game.current_player().unfreeze_all()
 
     if game.current_player().rolls_left in range(1, 3):  # can freeze
         x, y = pos

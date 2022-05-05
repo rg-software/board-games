@@ -15,6 +15,7 @@ def player_roll():
     print(f"rolls left: {game.current_player().rolls_left}")
 
     game.current_player().roll_dice()
+    game.current_player().unfreeze_all()
     print("hand: " + hand_string(game.current_player().hand))
 
     if not game.current_player().can_roll() or input("roll again (y/n)? ") == "n":

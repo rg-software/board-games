@@ -4,8 +4,9 @@ import random
 class Player:
     def __init__(self):
         self.hand = [0] * 5
-        self.to_roll = set({0, 1, 2, 3, 4})
         self.rolls_left = 3
+        self.to_roll = None
+        self.unfreeze_all()
 
     def _genrand(self):
         return random.randint(0, 5)
@@ -14,6 +15,9 @@ class Player:
         for i in self.to_roll:
             self.hand[i] = self._genrand()
         self.rolls_left -= 1
+
+    def unfreeze_all(self):
+        self.to_roll = set({0, 1, 2, 3, 4})
 
     def freeze(self, dice_idx):
         if dice_idx in self.to_roll:
