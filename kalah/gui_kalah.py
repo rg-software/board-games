@@ -4,7 +4,8 @@ from pgzero.builtins import Actor, Rect
 from game_kalah import Game
 
 WIDTH = 800
-HEIGHT = 300
+HEIGHT = 288
+TITLE = "Kalah"
 
 kalah = Game()
 
@@ -29,12 +30,11 @@ def draw():
     gameboard.draw()
 
     plbar_y = 0 if kalah.upper_player_move else gameboard.height - 10
-    screen.draw.filled_rect(Rect((0, plbar_y), (800, plbar_y + 10)), "green")
+    screen.draw.filled_rect(Rect((0, plbar_y), (800, 10)), "green")
 
     for pit_no in range(14):
-        screen.draw.text(
-            f"{kalah.board[pit_no]}", center=pit_coords(pit_no), color="black"
-        )
+        if cnt := kalah.board[pit_no]:
+            screen.draw.text(f"{cnt}", center=pit_coords(pit_no), color="black")
 
 
 def pit_at_location(mx, my):

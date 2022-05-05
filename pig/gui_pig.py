@@ -2,8 +2,9 @@ import pgzrun
 from pgzero.builtins import Actor
 from game_pig import Game
 
-WIDTH = 600
+WIDTH = 400
 HEIGHT = 300
+TITLE = "Pig"
 
 btn_roll = Actor("btn_roll", (100, 200))
 btn_end = Actor("btn_end", (300, 200))

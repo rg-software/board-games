@@ -1,5 +1,7 @@
 # Pig
 
+![pig](screenshot.png)
+
 ## Rules Summary
 
 - Players take turns until one of them scores 100 points.
