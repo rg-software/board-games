@@ -1,4 +1,23 @@
-GAMES LIST
+# Simple Board Games
+
+This is a collection of simple board games implemented in Python with [Pygame Zero](https://pygame-zero.readthedocs.io/en/stable/). These games are selected as possible exercises for entry-level programming courses. More details about the criteria for inclusion and other considerations can be found in [this paper].
+
+The code provided is supposed to be simple and straightforward, resembling a reasonable exercise solution: there are neither strong fool-proof mechanisms, nor polished GUIs. The main purpose of these examples is to demonstrate the complexity of a particular game from the software developer's perspective.
+
+Each game comes with a text interface, a graphical interface, and a small number of [pytest](https://pytest.org/)-powered unit tests.
+
+## Setup
+
+Install [Poetry](https://python-poetry.org), then run
+
+```shell
+poetry install
+```
+
+to install dependencies. Check the pages of individual games for more information.
+
+## Current Games
+
 <!--GAMES_TABLE-->
 |Name|BGG Rating|Core LOC|GUI value|Players|Category|CS topics|
 |---|---|---|---|---|---|---|
@@ -11,4 +30,7 @@ GAMES LIST
 |[<img src=https://cf.geekdo-static.com/icons/favicon2.ico width=20>](https://boardgamegeek.com/boardgame/101463/paletto)[<img src=https://upload.wikimedia.org/wikipedia/commons/7/74/Internet-web-browser.svg width=20>](https://spielstein.com/games/paletto/rules)&nbsp;[Paletto](/paletto/readme.md)|6.7|100|High|2-3|Strategy|graphs|
 
 <!--GAMES_TABLE_END-->
-END LIST
+
+## Third-party Contributions
+
+Deja vu font, noto emoji, Wikipedia cards

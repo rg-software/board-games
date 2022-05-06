@@ -7,6 +7,7 @@ MARGIN = 10
 
 WIDTH = Game.BoardWidth * CELLSIZE
 HEIGHT = Game.BoardHeight * CELLSIZE
+TITLE = "Stop-Gate"
 
 game = Game()
 
@@ -54,16 +55,16 @@ def draw():
     if game.is_game_over():
         screen.draw.text(
             f"Game over! {game.player_name()} player lost",
-            centery=int(HEIGHT / 2) - 20,
-            centerx=int(WIDTH / 2),
+            centery=HEIGHT // 2 - 20,
+            centerx=WIDTH // 2,
             fontsize=32,
             color="red",
         )
 
 
 def on_mouse_down(pos):
-    r = int(pos[1] / CELLSIZE)
-    c = int(pos[0] / CELLSIZE)
+    r = pos[1] // CELLSIZE
+    c = pos[0] // CELLSIZE
 
     if game.can_place_at(r, c):
         game.place_at(r, c)
