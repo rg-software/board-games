@@ -1,7 +1,7 @@
 from tkinter import Tk, messagebox, simpledialog
 import pgzrun
 from pgzero.builtins import Actor
-from game_farmers import Game, ActionError, NoProductException
+from game_farmers import Game, ActionError
 
 WIDTH = 700
 HEIGHT = 450

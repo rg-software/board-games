@@ -3,7 +3,8 @@ from pgzero.builtins import Actor, Rect
 from game_nothanks import Game
 
 WIDTH = 800
-HEIGHT = 600
+HEIGHT = 500
+TITLE = "No Thanks!"
 
 btn_pass = Actor("btn_pass", (100, 40))
 btn_take = Actor("btn_take", (300, 40))

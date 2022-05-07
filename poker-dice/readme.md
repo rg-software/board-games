@@ -12,7 +12,7 @@
 
 - The same action (keep some dice, re-roll the others) can be performed once again before the turn is passed to the second player.
 
-- When both players finished their turns, the player with a higher-ranked hand is declared winner. If no winning combination is collected, the player having a card of the highest value wins.
+- When both players finished their turns, the player with a higher-ranked hand is declared winner. If no winning combination is collected, the player having a card of the highest value wins. The lowest-valued card is 9, the highest-valued is Ace.
 
 |Rank|Hand Name|Description|
 |----|---------|-----------|

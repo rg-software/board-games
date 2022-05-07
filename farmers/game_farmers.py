@@ -5,16 +5,6 @@ class ActionError(BaseException):
     pass
 
 
-def assert_product(product, count):
-    if product < count:
-        raise ActionError()
-
-
-def assert_money(money, price):
-    if money + price < 0:
-        raise ActionError()
-
-
 class Player:
     def __init__(self):
         self.money = 10
@@ -27,10 +17,14 @@ class Player:
         self.bread += n
 
     def _buy(self, price, bonus):
-        assert_money(self.money, price + bonus)
-        self.money += price + bonus
+        r_price = price + bonus if price + bonus < 0 else -1  # at least one coin
+        if self.money + r_price < 0:
+            raise ActionError()
+        self.money += r_price
 
-    def _sell(self, units, price, bonus):
+    def _sell(self, have_units, units, price, bonus):
+        if have_units < units:
+            raise ActionError()
         self.money += (price + bonus) * units
 
     def buy_wheat(self, bonus):
@@ -42,18 +36,15 @@ class Player:
         self.animal += 1
 
     def sell_wheat(self, n, bonus):
-        assert_product(self.wheat, n)
-        self._sell(n, 5, bonus)
+        self._sell(self.wheat, n, 5, bonus)
         self.wheat -= n
 
     def sell_animal(self, n, bonus):
-        assert_product(self.animal, n)
-        self._sell(n, 10, bonus)
+        self._sell(self.animal, n, 10, bonus)
         self.animal -= n
 
     def sell_bread(self, n):
-        assert_product(self.bread, n)
-        self._sell(n, 7, 0)
+        self._sell(self.bread, n, 7, 0)
         self.bread -= n
 
 
@@ -126,9 +117,9 @@ class Game:
         self._market_idx += d
 
     def reroll_market(self):
-        if (v := random.randint(1, 6)) < 6:
+        if (v := random.randint(0, 5)) < 5:
             self._market_idx = v
-        return v == 6
+        return v == 5
 
     def set_market(self, v):
         self._market_idx = v

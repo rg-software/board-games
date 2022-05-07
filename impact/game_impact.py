@@ -1,5 +1,7 @@
 import random
 
+# TODO: randomly change placed dice!
+
 
 class Game:
     def __init__(self):
