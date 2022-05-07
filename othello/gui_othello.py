@@ -6,14 +6,13 @@ from game_othello import Game
 CELLWIDTH = 100
 WIDTH = 8 * CELLWIDTH + 200
 HEIGHT = 8 * CELLWIDTH
+TITLE = "Othello"
 
 game = Game()
 
 
 def draw_piece(r, c, name):
-    piece = Actor(name)
-    piece.x = c * CELLWIDTH + 50
-    piece.y = r * CELLWIDTH + 50
+    piece = Actor(name, pos=(c * CELLWIDTH + 50, r * CELLWIDTH + 50))
     piece.draw()
 
 
@@ -39,21 +38,26 @@ def draw():
     draw_infostring(f"Current move: {game.player_name()}", 250)
 
 
+def msg_box(title, text):
+    root = Tk()
+    root.withdraw()
+    messagebox.showinfo(title, text)
+    root.destroy()
+
+
 def on_mouse_down(pos):
-    r = int(pos[1] / 100)
-    c = int(pos[0] / 100)
+    r, c = pos[1] // 100, pos[0] // 100
 
     if r < 8 and c < 8 and game.move_allowed(r, c):
         game.move(r, c)
 
         if not game.has_legal_moves():
             game.pass_move()
-            Tk().wm_withdraw()
 
             if game.has_legal_moves():
-                messagebox.showinfo("Info", "Cannot move. Passing turn to the opponent")
+                msg_box("Info", "Cannot move. Passing turn to the opponent")
             else:
-                messagebox.showinfo("Info", "Game over!")
+                msg_box("Info", "Game over!")
 
 
 pgzrun.go()

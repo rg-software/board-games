@@ -2,7 +2,7 @@
 
 This is a collection of simple board games implemented in Python with [Pygame Zero](https://pygame-zero.readthedocs.io/en/stable/). These games are selected as possible exercises for entry-level programming courses. More details about the criteria for inclusion and other considerations can be found in [this paper].
 
-The code provided is supposed to be simple and straightforward, resembling a reasonable exercise solution: there are neither strong fool-proof mechanisms, nor polished GUIs. The main purpose of these examples is to demonstrate the complexity of a particular game from the software developer's perspective.
+The code provided is supposed to be simple and straightforward, resembling a "good enough" exercise solution: there are neither strong fool-proof mechanisms, nor polished GUIs. The main purpose of these examples is to demonstrate the complexity of a particular game from the software developer's perspective.
 
 Each game comes with a text interface, a graphical interface, and a small number of [pytest](https://pytest.org/)-powered unit tests.
 
