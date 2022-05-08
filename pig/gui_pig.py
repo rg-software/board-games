@@ -21,7 +21,7 @@ def draw_player_score(player, coords):
     c = "red" if player == pig.current_player else "black"
     pts = pig.score[player]
     screen.draw.circle(coords, 40, color=c)
-    screen.draw.text(f"P {player + 1}\n {pts}", center=coords, color=c, align="center")
+    screen.draw.text(f"P {player + 1}\n{pts}", center=coords, color=c, align="center")
 
 
 def draw():

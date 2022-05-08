@@ -4,6 +4,7 @@ from game_paletto import Game
 
 WIDTH = 700
 HEIGHT = 500
+TITLE = "Paletto"
 
 game = Game()
 end_button = Actor("end", (400, 400))
