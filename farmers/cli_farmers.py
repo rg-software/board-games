@@ -1,11 +1,11 @@
-from game_farmers import Game
+from game_farmers import Game, ActionError
 
 game = Game()
 
 
 def print_player_info(n, p, is_current):
     print(f'{">" if is_current else " "}P{n}. ', end="")
-    print(f"money: {p.money}, wheat: {p.wheat}, animal: {p.animal}, bread: {p.bread}")
+    print(f"money: {p.money}, wheat: {p.wheat}, animals: {p.animals}, bread: {p.bread}")
 
 
 def print_table_info():
@@ -18,11 +18,9 @@ def reroll_market(force):
         if game.is_market_on_edge():
             game.move_from_edge()
         else:
-            d = -1 if input("good (b)uy or good (s)ell? ") == "b" else 1
-            game.change_market(d)
+            game.change_market(input("good (b)uy or good (s)ell? ") == "b")
     elif game.reroll_market():
-        v = input("Free choice! Set buy market value (-2..2): ")
-        game.set_market(int(v + 2))
+        game.set_market(int(input("Free choice! Set buy market value (-2..2): ")))
 
 
 while not game.game_over():
@@ -36,22 +34,25 @@ while not game.game_over():
     if action == "m" or action == "s":
         amount = int(input("how many items? "))
 
-    if action == "m":
-        game.make_bread(amount)
-    elif action == "b" and product == "w":
-        game.buy_wheat()
-    elif action == "b" and product == "a":
-        game.buy_animal()
-    elif action == "s" and product == "w":
-        game.sell_wheat(amount)
-    elif action == "s" and product == "a":
-        game.sell_animal(amount)
-    else:
+    try:
+        if action == "m":
+            game.make_bread(amount)
+        elif action == "b" and product == "w":
+            game.buy_wheat()
+        elif action == "b" and product == "a":
+            game.buy_animals()
+        elif action == "s" and product == "w":
+            game.sell_wheat(amount)
+        elif action == "s" and product == "a":
+            game.sell_animals(amount)
+        else:
+            raise ActionError()
+    except ActionError:
         print("Illegal action!")
         continue
 
     if game.is_empty_market():
-        print("Market is empty! Will sell goods.")
+        print("Market is empty! Will sell all the goods.")
         game.sell_all()
         reroll_market(True)
     else:
@@ -61,9 +62,9 @@ while not game.game_over():
 
 if game.players[0].money != game.players[1].money:
     print("Game over! Final score:")
-    print("P1: {game.players[0].money}, P2: {game.players[1].money}")
+    print(f"P1: {game.players[0].money}, P2: {game.players[1].money}")
 else:
-    print("Tie! Will sell all the goods")
-    game.set_market(2)  # middle
+    print("Tie! Will sell all the goods.")
+    game.set_market(0)
     game.sell_all()
-    print("Final Score. P1: {game.players[0].money}, P2: {game.players[1].money}")
+    print(f"Final Score. P1: {game.players[0].money}, P2: {game.players[1].money}")

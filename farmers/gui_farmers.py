@@ -8,21 +8,35 @@ HEIGHT = 450
 TITLE = "Farmers Finances"
 
 btn_buy_wheat = Actor("btn_buy_wheat", (80, 350))
-btn_buy_animal = Actor("btn_buy_animal", (80 + 130, 350))
+btn_buy_animals = Actor("btn_buy_animal", (80 + 130, 350))
 btn_sell_wheat = Actor("btn_sell_wheat", (80 + 130 * 2, 350))
-btn_sell_animal = Actor("btn_sell_animal", (80 + 130 * 3, 350))
+btn_sell_animals = Actor("btn_sell_animal", (80 + 130 * 3, 350))
 btn_make_bread = Actor("btn_make_bread", (80 + 130 * 4, 350))
-Tk().wm_withdraw()
 
-
-# btn_end = Actor("btn_end", (300, 200))
 game = Game()
 
 
-def print_die(pts, pos, color):
-    if pts:
-        sym = "\U0001F404"  # cow # = chr(ord("\u2680") + pts - 1)
-        screen.draw.text(sym, pos, color=color, fontname="notoemoji", fontsize=60)
+def msg_box(title, text):
+    root = Tk()
+    root.withdraw()
+    messagebox.showinfo(title, text)
+    root.destroy()
+
+
+def ask_amount(text):
+    root = Tk()
+    root.withdraw()
+    r = simpledialog.askinteger("", text)
+    root.destroy()
+    return r
+
+
+def ask_yesno(text):
+    root = Tk()
+    root.withdraw()
+    r = messagebox.askyesno("", text)
+    root.destroy()
+    return r
 
 
 def draw_cards(wheat, animal, bread, pos, c):
@@ -43,54 +57,46 @@ def draw_market_info():
 
 def draw_player_info(n, p, is_current, x, y):
     c = "red" if is_current else "black"
-    screen.draw.text(f"Player {n+1}. Money: {p.money}", pos=(x, y), color=c)
-    draw_cards(p.wheat, p.animal, p.bread, (x, y + 50), c)
+    screen.draw.text(f"Player {n + 1}. Money: {p.money}", pos=(x, y), color=c)
+    draw_cards(p.wheat, p.animals, p.bread, (x, y + 50), c)
 
 
 def reroll_market(force):
-    if not force and messagebox.askyesno("", "Yes to change market, No to reroll"):
+    if not force and ask_yesno("Yes to change market, No to reroll"):
         if game.is_market_on_edge():
             game.move_from_edge()
         else:
-            isbuy = messagebox.askyesno("", "Yes for better buy, No for better sell")
-            game.change_market(-1 if isbuy else 1)
+            game.change_market(ask_yesno("Yes for better buy, No for better sell"))
     elif game.reroll_market():
-        v = simpledialog.askinteger("", "Free choice! set buy market value (-2..2)")
-        game.set_market(int(v + 2))
+        game.set_market(ask_amount("Free choice! set buy market value (-2..2)"))
+
+
+def message_game_over():
+    players = game.players
+    if players[0].money != players[1].money:
+        msg_box("", f"Game over! P1: {players[0].money}, P2: {players[1].money}")
+    else:
+        msg_box("", "Tie! Will sell all the goods.")
+        game.set_market(0)
+        game.sell_all()
+        msg_box("", f"Final Score. P1: {players[0].money}, P2: {players[1].money}")
 
 
 def draw():
     screen.fill("white")
 
     if game.game_over():
-        messagebox.showinfo(
-            "", f"Game over! P1: {game.players[0].money}, P2: {game.players[1].money}"
-        )
+        message_game_over()
 
     draw_market_info()
     draw_player_info(0, game.players[0], game.current_player_idx == 0, 20, 50)
     draw_player_info(1, game.players[1], game.current_player_idx == 1, 20, 200)
 
     btn_buy_wheat.draw()
-    btn_buy_animal.draw()
+    btn_buy_animals.draw()
     btn_sell_wheat.draw()
-    btn_sell_animal.draw()
+    btn_sell_animals.draw()
     btn_make_bread.draw()
-
-    # screen.draw.text(f"table: {pig.table}", (220, 20), color="black")
-
-    # print_die(5, (220, 40), "black")
-
-
-#     if pig.game_over():
-#         screen.draw.text("Game over!", (10, 100), color="black")
-#     else:
-#         btn_roll.draw()
-#         btn_end.draw()
-
-
-def ask_amount():
-    return simpledialog.askinteger("", "How many?")
 
 
 def on_mouse_down(pos):
@@ -99,21 +105,21 @@ def on_mouse_down(pos):
         move_completed = True
 
         if btn_make_bread.collidepoint(pos):
-            game.make_bread(ask_amount())
+            game.make_bread(ask_amount("How many?"))
         elif btn_buy_wheat.collidepoint(pos):
             game.buy_wheat()
-        elif btn_buy_animal.collidepoint(pos):
-            game.buy_animal()
+        elif btn_buy_animals.collidepoint(pos):
+            game.buy_animals()
         elif btn_sell_wheat.collidepoint(pos):
-            game.sell_wheat(ask_amount())
-        elif btn_sell_animal.collidepoint(pos):
-            game.sell_animal(ask_amount())
+            game.sell_wheat(ask_amount("How many?"))
+        elif btn_sell_animals.collidepoint(pos):
+            game.sell_animals(ask_amount("How many?"))
         else:
             move_completed = False
 
         if move_completed:
             if game.is_empty_market():
-                messagebox.showinfo("", "Market is empty! Will sell goods.")
+                msg_box("", "Market is empty! Will sell all the goods.")
                 game.sell_all()
                 reroll_market(True)
             else:
@@ -121,7 +127,7 @@ def on_mouse_down(pos):
             game.pass_turn()
 
     except ActionError:
-        pass
+        msg_box("", "Illegal action!")
 
 
 pgzrun.go()
