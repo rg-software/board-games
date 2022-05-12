@@ -29,3 +29,5 @@ GUI version:
 ```shell
 poetry run python gui_impact.py
 ```
+
+Modify `Game.KICK_CHANCE` to adjust the probability of knocking and turning dice in the arena.
