@@ -21,19 +21,23 @@ def linkicon(link):
     return f"[{ico}]({link})"
 
 
+def jointopics(topic1, topic2):
+    return f"{topic1}, {topic2}" if topic2 else f"{topic1}"
+
+
 book = p.get_book(file_name=xlsx_name)
 sheet = book[games_page]
 cols = DotMap({name.replace(" ", ""): c for c, name in enumerate(sheet.row[0])})
 
 
-r = "\n|Name|BGG Rating|Core LOC|GUI value|Players|Category|CS topics|\n"
+r = "\n|Name|BGG Rating|Core LOC|GUI value|Players|Category|Topics|\n"
 r += "|---|---|---|---|---|---|---|\n"
 
 for row in list(sheet.rows())[1:]:
     r += f"|{linkicon(row[cols.BGG])}{linkicon(row[cols.AltLink])}&nbsp;"
     r += f"[{row[cols.Name]}](/{row[cols.Folder]}/readme.md)|"
-    r += f"{row[cols.BGGRating]}|{row[cols.CoreLOC]}|{row[cols.GUIvalue]}|{row[cols.Players]}|"
-    r += f"{row[cols.Category]}|{row[cols.CStopics]}|\n"
+    r += f"{row[cols.BGGRating]}|{row[cols.CoreLOC]}|{row[cols.GUIValue]}|{row[cols.Players]}|"
+    r += f"{row[cols.Category]}|{jointopics(row[cols.Topic1], row[cols.Topic2])}|\n"
 
 
 with open(md_filename, "r", encoding="utf-8") as f:
