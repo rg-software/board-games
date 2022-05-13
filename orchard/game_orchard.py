@@ -3,66 +3,90 @@ import copy
 
 
 # white/rotten 0, blue 1, red 2, green 3
-b = 1
-r = 2
-g = 3
+B = 1
+R = 2
+G = 3
 DECK = [
-    [[b, r], [r, b], [g, g]],
-    [[b, r], [g, g], [r, b]],
-    [[r, g], [b, b], [g, r]],
-    [[g, r], [g, b], [r, b]],
-    [[b, g], [b, r], [g, r]],
-    [[b, b], [r, g], [g, r]],
-    [[r, b], [r, g], [b, g]],
-    [[g, b], [r, r], [b, g]],
-    [[r, r], [g, b], [b, g]],
-    [[g, r], [b, b], [g, r]],
-    [[r, b], [g, g], [r, b]],
-    [[r, b], [r, b], [g, g]],
-    [[b, b], [r, g], [r, g]],
-    [[b, g], [r, b], [g, r]],
-    [[b, r], [b, g], [r, b]],
-    [[r, r], [g, b], [g, b]],
-    [[b, g], [r, r], [b, g]],
-    [[r, b], [g, r], [b, g]],
+    [[B, R], [R, B], [G, G]],
+    [[B, R], [G, G], [R, B]],
+    [[R, G], [B, B], [G, R]],
+    [[G, R], [G, B], [R, B]],
+    [[B, G], [B, R], [G, R]],
+    [[B, B], [R, G], [G, R]],
+    [[R, B], [R, G], [B, G]],
+    [[G, B], [R, R], [B, G]],
+    [[R, R], [G, B], [B, G]],
+    [[G, R], [B, B], [G, R]],
+    [[R, B], [G, G], [R, B]],
+    [[R, B], [R, B], [G, G]],
+    [[B, B], [R, G], [R, G]],
+    [[B, G], [R, B], [G, R]],
+    [[B, R], [B, G], [R, B]],
+    [[R, R], [G, B], [G, B]],
+    [[B, G], [R, R], [B, G]],
+    [[R, B], [G, R], [B, G]],
 ]
 
 
-class Stack:
+class DiceBox:
     def __init__(self):
-        self.data = []
-        self.has_die = False
+        self.dice = [2] + [5] * 3  # 2 rotten + 5 dice per each color
 
+    def has_die(self, idx):
+        return self.dice[idx] > 0
+
+    def take_die(self, idx):
+        self.dice[idx] -= 1
+
+    def put_die(self, idx):
+        self.dice[idx] += 1
+
+
+class Stack:
+    def __init__(self, dicebox):
+        self._dicebox = dicebox
+        self._data = []
+        self._has_die = False
+
+    # Scoring can be improved: we don't track if a die is placed on a large empty pile
     def score(self):
-        if not self.has_die:
+        if not self._has_die:
             return 0
-        elif self.is_rotten():
+        if self.is_rotten():
             return -3
 
-        return [1, 3, 6, 10][min(len(self.data) - 2, 3)]  # stack score
+        return [1, 3, 6, 10][min(len(self._data) - 2, 3)]  # stack score
+
+    def has_data(self):
+        return bool(self._data)
 
     def is_rotten(self):
-        return self.has_die and self.data[0] != self.data[1]
-
-    def is_empty(self):
-        return not self.data
+        return self._has_die and min(self._data) != max(self._data)
 
     def top(self):
-        return 0 if self.is_empty() else self.data[-1]
+        return self._data[-1] if self.has_data() else 0
 
-    def add(self, value, add_die):
-        self.data.append(value)
-        self.has_die = self.has_die or add_die
+    # Note: we do not check that rotten card may enable another die on the same step
+    def add(self, e):
+        die = 0 if self.has_data() and e != self.top() else e
+
+        if die == 0 and self._has_die:
+            self._dicebox.put_die(self.top())  # rotten die replaces the existing die
+
+        if not self._has_die and self.has_data() and self._dicebox.has_die(die):
+            self._dicebox.take_die(die)
+            self._has_die = True
+        self._data.append(e)
 
 
 class Game:
     BOARDSIZE = 20
 
     def __init__(self):
-        self.dice = [2] + [5] * 3
+        self.dicebox = DiceBox()
         self.deck = copy.deepcopy(DECK)
         random.shuffle(self.deck)
-        self.deck = self.deck[:9]
+        self.deck = self.deck[:9]  # remove 9 random cards
         self.board = [self._empty_line() for _ in range(Game.BOARDSIZE)]
         self.hand = [self.deck.pop(), self.deck.pop()]
         self.place_card((2, 2))
@@ -71,11 +95,11 @@ class Game:
         return sum([sum([e.score() for e in r]) for r in self.board])
 
     def _empty_line(self):
-        return [Stack() for _ in range(Game.BOARDSIZE)]
+        return [Stack(self.dicebox) for _ in range(Game.BOARDSIZE)]
 
     def _line_has_items(self, r, c, dr, dc):
         while max(r, c) < Game.BOARDSIZE:
-            if not self.board[r][c].is_empty():
+            if self.board[r][c].has_data():
                 return True
             r += dr
             c += dc
@@ -86,7 +110,7 @@ class Game:
 
     def _move_right(self):
         for r, _ in enumerate(self.board):
-            self.board[r] = [Stack()] + self.board[r][:-1]
+            self.board[r] = [Stack(self.dicebox)] + self.board[r][:-1]
 
     def move_board(self):
         while self._line_has_items(0, 0, 0, 1) or self._line_has_items(1, 0, 0, 1):
@@ -118,7 +142,7 @@ class Game:
     def can_place(self, rc):
         card = self.hand[0]
         overlaps = False
-        have_rotten = self.dice[0]
+        have_rotten = self.dicebox.dice[0]
         for r_idx, row in enumerate(card):
             for c_idx, card_e in enumerate(row):
                 board_e = self.board[rc[0] + r_idx][rc[1] + c_idx]
@@ -138,11 +162,7 @@ class Game:
         for r_idx, row in enumerate(card):
             for c_idx, e in enumerate(row):
                 stack = self.board[rc[0] + r_idx][rc[1] + c_idx]
-                die = 0 if not stack.is_empty() and e != stack.top() else e
-
-                use_die = not (stack.has_die or stack.is_empty()) and self.dice[die] > 0
-                self.dice[die] -= int(use_die)
-                stack.add(e, use_die)
+                stack.add(e)
 
         self.move_board()
         self.take_card()
