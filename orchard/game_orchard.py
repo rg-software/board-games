@@ -47,6 +47,7 @@ class Stack:
         self._dicebox = dicebox
         self._data = []
         self._has_die = False
+        self._die_score = -1
 
     # Scoring can be improved: we don't track if a die is placed on a large empty pile
     def score(self):
@@ -55,7 +56,7 @@ class Stack:
         if self.is_rotten():
             return -3
 
-        return [1, 3, 6, 10][min(len(self._data) - 2, 3)]  # stack score
+        return [1, 3, 6, 10][min(self._die_score, 3)]  # stack score
 
     def has_data(self):
         return bool(self._data)
@@ -76,7 +77,10 @@ class Stack:
         if not self._has_die and self.has_data() and self._dicebox.has_die(die):
             self._dicebox.take_die(die)
             self._has_die = True
+
         self._data.append(e)
+        if self._has_die:
+            self._die_score += 1
 
 
 class Game:

@@ -66,8 +66,7 @@ def test_stack_ops_3():
     assert s1.score() == -3  # now rotten
 
     s2.add(1)  # now has a die to place here
-    assert s2.score() > 0  # TODO: better scoring
-    assert s2.score() == 3  # TODO: but should be 1...
+    assert s2.score() == 1  # large pile, but the die has been just placed
 
 
 def test_canplace():

@@ -34,7 +34,7 @@ def print_all():
     print_board()
     print(f"Deck size: {len(game.deck)}, Score: {game.score()}")
     dicecolors = ["Rotten", "Blue", "Red", "Green"]
-    dice = [f"{dicecolors[idx]}: {cnt}" for idx, cnt in enumerate(game.dicebox.dic)]
+    dice = [f"{dicecolors[idx]}: {cnt}" for idx, cnt in enumerate(game.dicebox.dice)]
     print(f"Dice: {', '.join(dice)}")
 
     if game.hand[0]:
