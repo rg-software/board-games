@@ -1,6 +1,6 @@
 import pgzrun
 from pgzero.builtins import Actor
-from game_blackbox import Game, ResultType
+from game_blackbox import Game, ExitType
 
 WIDTH = 550
 HEIGHT = 600
@@ -11,6 +11,7 @@ TITLE = "Black Box"
 balls = []
 buttons = {}
 btn_end = Actor("end", pos=(240, 550))
+
 game = Game()
 game_over = False
 
@@ -46,9 +47,9 @@ class SideButton(Actor):
         return self.image != "button"
 
     def set_type(self, result):
-        if result.result_type == ResultType.HIT:
+        if result.exit_type == ExitType.HIT:
             self.image = "button-red"
-        elif result.result_type == ResultType.REFLECT:
+        elif result.exit_type == ExitType.REFLECT:
             self.image = "button-yellow"
         else:
             self.image = "button-orange"
@@ -107,7 +108,7 @@ def on_mouse_down(pos):
 
         btn.set_type(result)
 
-        if result.result_type == ResultType.DETOUR:
+        if result.exit_type == ExitType.DETOUR:
             buttons[(result.r, result.c)].set_second_marker()
 
 

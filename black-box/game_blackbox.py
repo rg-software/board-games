@@ -2,16 +2,16 @@ from enum import Enum
 import random
 
 
-class ResultType(Enum):
+class ExitType(Enum):
     NONE = 0
     HIT = 1
     REFLECT = 2
     DETOUR = 3
 
 
-class Result:
+class TraceResult:
     def __init__(self, rt, r, c):
-        self.result_type = rt
+        self.exit_type = rt
         self.r = r
         self.c = c
 
@@ -19,28 +19,26 @@ class Result:
 class Game:
     def __init__(self):
         self.board = [[False for _ in range(10)] for _ in range(10)]
-        self.hidden_balls = []
+        self.hidden_balls = self._generate_balls()
 
-        # self.board[4][3] = True
-        # self.board[1][5] = True
-        # self.board[4][5] = True
-        # self.board[8][8] = True
+        for (r, c) in self.hidden_balls:
+            self.board[r][c] = True
 
-        to_place = 4
-        while to_place:
+    def _generate_balls(self):
+        result = []
+        while len(result) < 4:
             r = random.randint(1, 8)
             c = random.randint(1, 8)
-            if not self.board[r][c]:
-                self.board[r][c] = True
-                self.hidden_balls.append((r, c))
-                to_place -= 1
+            if (r, c) not in result:
+                result.append((r, c))
+        return result
 
     def _get_speeds(self, r, c, vr, vc):
         if self.board[r + vr][c + vc]:
             return 0, 0
 
-        dc = bool(vr != 0)
-        dr = bool(vc != 0)
+        dc = int(vr != 0)
+        dr = int(vc != 0)
 
         c1 = self.board[r + vr + dr][c + vc + dc]
         c2 = self.board[r + vr - dr][c + vc - dc]
@@ -66,14 +64,14 @@ class Game:
             entered_box = entered_box or in_box
             do_loop = in_box and (vr, vc) != (0, 0)
 
-        result = Result(ResultType.DETOUR, r, c)
+        result = TraceResult(ExitType.DETOUR, r, c)
 
         if in_box:
-            result.result_type = ResultType.HIT
+            result.exit_type = ExitType.HIT
         if (start_r, start_c) == (r, c):
-            result.result_type = ResultType.REFLECT if entered_box else ResultType.HIT
+            result.exit_type = ExitType.REFLECT if entered_box else ExitType.HIT
         elif not entered_box:
-            result.result_type = ResultType.REFLECT
+            result.exit_type = ExitType.REFLECT
 
         return result
 
