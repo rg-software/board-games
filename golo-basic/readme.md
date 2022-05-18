@@ -18,11 +18,13 @@
 
   - Die #9: 4, 5, 5, 5, 6, 6, 7, 7, 8, 8, 8, 9.
 
-- First, a player rolls all nine dice.
+- The game session proceeds as follows:
 
-- Next, any number of dice (but at least one) with the lowest scores are removed from the game. _Note: while the "lowest-scores" condition is stated in the rules, it is not necessary to enforce it in practice: any reasonable strategy suggests removing the lowest-scoring dice anyway._
+  - First, a player rolls all nine dice.
 
-- The remaining dice are rolled until all of them are removed.
+  - Next, any number of dice (but at least one) with the lowest scores are removed from the game. _Note: while the "lowest-scores" condition is stated in the rules, it is not necessary to enforce it in practice: any reasonable strategy suggests removing the lowest-scoring dice anyway._
+
+  - The remaining dice are rolled until all of them are removed.
 
 - The sum of all removed dice is the final score.
 

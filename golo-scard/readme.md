@@ -20,13 +20,15 @@
 
 - The player also needs a course scorecard (real-life golf course cards can be used).
 
-- First, a player rolls all nine dice and decides which holes to complete.
+- The game session proceeds as follows:
 
-- The holes must be completed in order (from 1 to 9), and a die with the matching par number must be used. For example, only blue dice can be used to complete a par-5 hole.
+  - First, the player rolls all nine dice and decides which holes to complete.
 
-- The player completes any number of holes (but at least one) by removing the corresponding amount of matching dice from the game.
+  - The holes must be completed in order (from 1 to 9), and the dice with matching par numbers must be used. For example, only blue dice can be chosen to complete a par-5 hole.
 
-- The remaining dice are rolled until all of them are removed.
+  - The player completes any number of holes (but at least one) by removing the corresponding amount of matching dice from the game.
+
+  - The remaining dice are rolled until all of them are removed.
 
 - The sum of all removed dice is the final course score, which can be compared with the expected score according to the course scorecard.
 
