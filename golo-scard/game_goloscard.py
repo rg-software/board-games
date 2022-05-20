@@ -17,7 +17,7 @@ class Game:
     def roll(self):
         self.rolled = [random.choice(die) for _, die in self.dice]
 
-    def can_remove(self, all_indices):  # must remove the smallest numbers
+    def can_remove(self, all_indices):  # must remove matching par dice only
         to_remove = []
         indices = list(all_indices)
         while indices:
