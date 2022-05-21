@@ -32,39 +32,22 @@ class Cell(Enum):
 
 
 class Block:
-    def __init__(self, blocktype):
-        self.shape = SHAPES[blocktype]
+    def __init__(self, shape):
+        self._shape = shape
 
     def coord(self):
-        return self.shape
+        return self._shape
 
     def flip(self):
-        coord = self.shape
-        for i in range(len(coord)):
-            x, y = coord[i]
-            coord[i] = x * (-1), y
-        self.alignment()
-        self.shape = coord
+        self._shape = self._align([(-x, y) for (x, y) in self._shape])
 
     def rotate(self):
-        coord = self.shape
-        for i in range(len(coord)):
-            x, y = coord[i]
-            coord[i] = y, x * (-1)
-        self.alignment()
-        self.shape = coord
+        self._shape = self._align([(y, -x) for (x, y) in self._shape])
 
-    def alignment(self):
-        coord = self.shape
-        while any(e[0] < 0 for e in coord):
-            for i in range(len(coord)):
-                x, y = coord[i]
-                coord[i] = x + 1, y
-        while any(e[1] < 0 for e in coord):
-            for i in range(len(coord)):
-                x, y = coord[i]
-                coord[i] = x, y + 1
-        self.shape = coord
+    def _align(self, shape):
+        minx = min([x for (x, _) in shape])
+        miny = min([y for (_, y) in shape])
+        return [(x - minx, y - miny) for (x, y) in shape]
 
 
 class Game:
@@ -76,202 +59,111 @@ class Game:
             [Cell.EMPTY for _ in range(Game.BoardWidth)]
             for _ in range(Game.BoardHeight)
         ]
-        self.blocks_player_1 = [Block(n) for n in range(len(SHAPES))]
-        self.blocks_player_2 = [Block(n) for n in range(len(SHAPES))]
-        self.current_block = self.blocks_player_1[0]
-        self._is_current_player_1 = True
+
+        # player 1 and player 2
+        self._blocks = [[Block(s) for s in SHAPES], [Block(s) for s in SHAPES]]
+        self._is_current_player_2 = False
 
     def _cell_on_board(self, r, c):
-        return r < Game.BoardHeight and c < Game.BoardWidth
+        return r in range(Game.BoardHeight) and c in range(Game.BoardWidth)
 
     def _cell_free(self, r, c):
         return self._cell_on_board(r, c) and self.board[r][c] == Cell.EMPTY
 
-    def _cell_adjacent(self, r, c):
-        if self._is_current_player_1:
-            if (
-                (self._cell_on_board(r + 1, c) and self.board[r + 1][c] == Cell.BLOCK_1)
-                or (
-                    self._cell_on_board(r - 1, c)
-                    and self.board[r - 1][c] == Cell.BLOCK_1
-                )
-                or (
-                    self._cell_on_board(r, c + 1)
-                    and self.board[r][c + 1] == Cell.BLOCK_1
-                )
-                or (
-                    self._cell_on_board(r, c - 1)
-                    and self.board[r][c - 1] == Cell.BLOCK_1
-                )
-            ):
-                return True
-        else:
-            if (
-                (self._cell_on_board(r + 1, c) and self.board[r + 1][c] == Cell.BLOCK_2)
-                or (
-                    self._cell_on_board(r - 1, c)
-                    and self.board[r - 1][c] == Cell.BLOCK_2
-                )
-                or (
-                    self._cell_on_board(r, c + 1)
-                    and self.board[r][c + 1] == Cell.BLOCK_2
-                )
-                or (
-                    self._cell_on_board(r, c - 1)
-                    and self.board[r][c - 1] == Cell.BLOCK_2
-                )
-            ):
+    def _cell_neighbor(self, r, c, dlist):
+        btype = self._current_player_blocktype()
+        coords = [(r + dx, c + dy) for dx, dy in dlist]
+        for nr, nc in coords:
+            if self._cell_on_board(nr, nc) and self.board[nr][nc] == btype:
                 return True
         return False
+
+    def _cell_adjacent(self, r, c):
+        return self._cell_neighbor(r, c, [(-1, 0), (1, 0), (0, -1), (0, 1)])
 
     def _cell_touching_corner(self, r, c):
-        if self._is_current_player_1:
-            if (
-                (
-                    self._cell_on_board(r + 1, c + 1)
-                    and self.board[r + 1][c + 1] == Cell.BLOCK_1
-                )
-                or (
-                    self._cell_on_board(r - 1, c + 1)
-                    and self.board[r - 1][c + 1] == Cell.BLOCK_1
-                )
-                or (
-                    self._cell_on_board(r + 1, c - 1)
-                    and self.board[r + 1][c - 1] == Cell.BLOCK_1
-                )
-                or (
-                    self._cell_on_board(r - 1, c - 1)
-                    and self.board[r - 1][c - 1] == Cell.BLOCK_1
-                )
-            ):
-                return True
-        else:
-            if (
-                (
-                    self._cell_on_board(r + 1, c + 1)
-                    and self.board[r + 1][c + 1] == Cell.BLOCK_2
-                )
-                or (
-                    self._cell_on_board(r - 1, c + 1)
-                    and self.board[r - 1][c + 1] == Cell.BLOCK_2
-                )
-                or (
-                    self._cell_on_board(r + 1, c - 1)
-                    and self.board[r + 1][c - 1] == Cell.BLOCK_2
-                )
-                or (
-                    self._cell_on_board(r - 1, c - 1)
-                    and self.board[r - 1][c - 1] == Cell.BLOCK_2
-                )
-            ):
-                return True
-        return False
+        return self._cell_neighbor(r, c, [(-1, -1), (1, 1), (1, -1), (-1, 1)])
 
-    def select_block(self, b):
-        if self._is_current_player_1 and 0 <= b <= len(self.blocks_player_1):
-            self.current_block = self.blocks_player_1[b]
-        if not self._is_current_player_1 and 0 <= b <= len(self.blocks_player_2):
-            self.current_block = self.blocks_player_2[b]
-        return self.current_block
+    def _current_player_blocktype(self):
+        return Cell.BLOCK_2 if self._is_current_player_2 else Cell.BLOCK_1
 
-    def rotate_current_block(self):
-        self.current_block.rotate()
+    def _current_player_blocks(self):
+        return self._blocks[int(self._is_current_player_2)]
 
-    def flip_current_block(self):
-        self.current_block.flip()
+    def get_block(self, idx):
+        return self._current_player_blocks()[idx]
 
-    def current_block_shape(self):
-        return self.current_block.coord()
+    def rotate_block(self, idx):
+        self.get_block(idx).rotate()
 
-    def next_block(self, m):
-        if self._is_current_player_1:
-            i = self.blocks_player_1.index(self.current_block)
-            i = i + m
-            if i < 0:
-                i = len(self.blocks_player_1) - 1
-            if i >= len(self.blocks_player_1):
-                i = 0
-            self.current_block = self.blocks_player_1[i]
-        else:
-            i = self.blocks_player_2.index(self.current_block)
-            i = i + m
-            if i < 0:
-                i = len(self.blocks_player_2) - 1
-            if i >= len(self.blocks_player_2):
-                i = 0
-            self.current_block = self.blocks_player_2[i]
+    def flip_block(self, idx):
+        self.get_block(idx).flip()
 
-    def can_place_at(self, r, c, b):
-        block = b if b != 0 else self.current_block
-        coord = block.coord()
-        any_corner = False
-        for d in coord:
-            row = r + d[0]
-            column = c + d[1]
-            if not self._cell_free(row, column):
-                return False
-            if self._cell_adjacent(row, column):
-                return False
-            if len(SHAPES) != len(self.blocks_player_1) and len(SHAPES) != len(
-                self.blocks_player_2
-            ):
-                if self._cell_touching_corner(row, column):
-                    any_corner = True
-            else:
-                any_corner = True
-        if not any_corner:
-            return False
-        return True
+    def block_shape(self, idx):
+        return self.get_block(idx).coord()
 
-    def player_name(self):
-        return "PLAYER_1" if self._is_current_player_1 else "PLAYER_2"
+    def prev_block(self, idx):
+        return max(0, idx - 1)
 
-    def place_at(self, r, c):
-        coord = self.current_block.coord()
-        for d in coord:
-            row = r + d[0]
-            column = c + d[1]
-            if self._is_current_player_1:
-                self.board[row][column] = Cell.BLOCK_1
-            else:
-                self.board[row][column] = Cell.BLOCK_2
-
-        if self._is_current_player_1:
-            self.blocks_player_1.remove(self.current_block)
-            self.current_block = self.blocks_player_2[0]
-        else:
-            self.blocks_player_2.remove(self.current_block)
-            self.current_block = self.blocks_player_1[0]
+    def next_block(self, idx):
+        return min(idx + 1, len(self._current_player_blocks()) - 1)
 
     def next_player(self):
-        self._is_current_player_1 = not self._is_current_player_1
+        self._is_current_player_2 = not self._is_current_player_2
+
+    def can_place_at(self, r, c, block):
+        result = False
+        for dr, dc in block.coord():
+            row, column = r + dr, c + dc
+
+            if not self._cell_free(row, column) or self._cell_adjacent(row, column):
+                return False
+
+            startpos = (9, 9) if self._is_current_player_2 else (4, 4)
+            first_move = len(self._current_player_blocks()) == len(SHAPES)
+            first_move_ok = first_move and startpos == (row, column)
+            corner_rule_ok = not first_move and self._cell_touching_corner(row, column)
+
+            result = result or corner_rule_ok or first_move_ok
+
+        return result
+
+    def player_name(self):
+        return "PLAYER 2" if self._is_current_player_2 else "PLAYER 1"
+
+    def player_color(self):
+        return "black" if self._is_current_player_2 else "white"
+
+    def place_at(self, r, c, block):
+        blocktype = self._current_player_blocktype()
+
+        for dr, dc in block.coord():
+            self.board[r + dr][c + dc] = blocktype
+
+        self._current_player_blocks().remove(block)
+
+    def _can_place_on_board(self, block):
+        for r in range(Game.BoardHeight):
+            for c in range(Game.BoardWidth):
+                if self.can_place_at(r, c, block):
+                    return True
+        return False
 
     def is_game_over(self):
-        blocks_left = (
-            self.blocks_player_1 if self._is_current_player_1 else self.blocks_player_2
-        )
-
-        # Да. Я знаю. Но ничего лучше я не придумала.
-        # Нам нужно проверить все клетки на все фигуры и их варианты...
-
-        for block in blocks_left:
+        for block in self._current_player_blocks():
             for _ in range(2):
                 for _ in range(4):
-                    for r in range(Game.BoardHeight):
-                        for c in range(Game.BoardWidth):
-                            if self.can_place_at(r, c, block):
-                                return False
+                    if self._can_place_on_board(block):
+                        return False
                     block.rotate()
                 block.flip()
 
         return True
 
-    # Это подсказка. На поле выводится кружечек куда можно тыкнуть :)
-    # Я сделала ее для своего удобства. Ее можно удалить.
-    def hints(self):
+    def hints(self, block):
         coord = []
         for r in range(Game.BoardHeight):
             for c in range(Game.BoardWidth):
-                if self.can_place_at(r, c, 0):
+                if self.can_place_at(r, c, block):
                     coord.append((r, c))
         return coord

@@ -1,114 +1,99 @@
 import pgzrun
+from pgzero.builtins import Actor, Rect
 from game_blokusduo import Game, Cell
-from pygame import Rect
 
-CELLSIZE = 50
+CELL = 50
 MARGIN = 10
 ROW = 14
 COLUMN = 14
-WIDTH = Game.BoardWidth * CELLSIZE + CELLSIZE*7
-HEIGHT = Game.BoardHeight * CELLSIZE 
-TITLE = "Blokus DUO"
+WIDTH = Game.BoardWidth * CELL + CELL * 7
+HEIGHT = Game.BoardHeight * CELL + 1
+TITLE = "Blokus Duo"
 
-btn_previous = Actor("btn_previous", (CELLSIZE *ROW + CELLSIZE + CELLSIZE/2, CELLSIZE*10))
-btn_rotate = Actor("btn_rotate", (CELLSIZE *ROW + CELLSIZE + CELLSIZE/2 + 70, CELLSIZE*10))
-btn_flip = Actor("btn_flip", (CELLSIZE *ROW + CELLSIZE + CELLSIZE/2 + 70 * 2, CELLSIZE*10))
-btn_next = Actor("btn_next", (CELLSIZE *ROW + CELLSIZE + CELLSIZE/2 + 70 * 3, CELLSIZE*10))
+btn_previous = Actor("btn_previous", (CELL * ROW + CELL + CELL / 2, CELL * 10))
+btn_rotate = Actor("btn_rotate", (CELL * ROW + CELL + CELL / 2 + 70, CELL * 10))
+btn_flip = Actor("btn_flip", (CELL * ROW + CELL + CELL / 2 + 70 * 2, CELL * 10))
+btn_next = Actor("btn_next", (CELL * ROW + CELL + CELL / 2 + 70 * 3, CELL * 10))
 
 game = Game()
+block_idx = 0
 
-def draw_blocks_on_bord(r, c, color):
-    screen.draw.filled_rect(
-        Rect(
-            c * CELLSIZE + MARGIN,
-            r * CELLSIZE + MARGIN,
-            CELLSIZE - 2 * MARGIN,
-            CELLSIZE - 2 * MARGIN,
-        ),
-        color,
-    )
-def draw_hints():
-    coord = game.hints()
-    for r in range(0, ROW):
-        for c in range(0, ROW):
-            if (r,c) in coord:
-                screen.draw.circle((c*CELLSIZE + CELLSIZE/2, r*CELLSIZE +CELLSIZE/2), MARGIN*2, "light gray")
 
-def draw_current_block():    
-    x = CELLSIZE *ROW + CELLSIZE
-    y = CELLSIZE*4
-    color = "white" if game.player_name() == "PLAYER_1" else "black"
-    for i in range(0, 6):
-        screen.draw.line((CELLSIZE*i + x, y), (CELLSIZE*i + x, y + CELLSIZE*5), "dark gray")
-        screen.draw.line((x, CELLSIZE*i + y), (x + CELLSIZE*5, CELLSIZE * i + y), "dark gray")
-    shape = game.current_block_shape()
-    for r in range(0, 5):
-        for c in range(0, 5):
-            if (r,c) in shape:
-                screen.draw.filled_rect(
-                    Rect(
-                        c * CELLSIZE + MARGIN + x,
-                        r * CELLSIZE + MARGIN + y,
-                        CELLSIZE - 2 * MARGIN,
-                        CELLSIZE - 2 * MARGIN,
-                    ),
-                    color,
-                )    
-    screen.draw.circle((x + CELLSIZE/2, y + CELLSIZE/2), MARGIN*2, "white")
+def draw_cell(r, c, color):
+    pos = (c * CELL + MARGIN, r * CELL + MARGIN)
+    screen.draw.filled_rect(Rect(pos, (CELL - 2 * MARGIN, CELL - 2 * MARGIN)), color)
+
+
+def draw_hint(r, c):
+    pos = (c * CELL + CELL / 2, r * CELL + CELL / 2)
+    screen.draw.filled_circle(pos, MARGIN * 2, "light gray")
+
+
+def draw_hints(block):
+    coord = game.hints(block)
+    for r, c in coord:
+        draw_hint(r, c)
+
+
+def draw_block(r, c, block, color):
+    for dr, dc in block.coord():
+        draw_cell(r + dr, c + dc, color)
+
+
+def blockcolor(b):
+    return "white" if b == Cell.BLOCK_1 else ("black" if b == Cell.BLOCK_2 else "gray")
+
+
+def draw_info(msg, color):
+    textpos = (CELL * ROW + CELL * 3, CELL * 3)  # (CELL * 3, CELL * ROW + CELL * 3)
+    screen.draw.text(msg, center=textpos, fontsize=32, color=color)
+
 
 def draw():
     screen.fill("gray")
+
     for i in range(1, ROW + 1):
-        screen.draw.line((CELLSIZE * i, 0), (CELLSIZE * i, HEIGHT), "white")
+        screen.draw.line((CELL * i, 0), (CELL * i, HEIGHT), "white")
     for i in range(1, COLUMN + 1):
-        screen.draw.line((0, CELLSIZE * i), (CELLSIZE *COLUMN, CELLSIZE * i), "white")
+        screen.draw.line((0, CELL * i), (CELL * COLUMN, CELL * i), "white")
 
     for r in range(ROW):
         for c in range(COLUMN):
-            if game.board[r][c] == Cell.BLOCK_1:
-                draw_blocks_on_bord(r, c, "white")
-            elif game.board[r][c] == Cell.BLOCK_2:
-                draw_blocks_on_bord(r, c, "black")
+            draw_cell(r, c, blockcolor(game.board[r][c]))
 
-    draw_current_block()
-    draw_hints()
+    if game.is_game_over():
+        draw_info(f"Game over!\n{game.player_name()} lost", "red")
+    else:
+        draw_info(f"{game.player_name()}", "black")
+
+    draw_block(4, 15, game.get_block(block_idx), game.player_color())
+    draw_hints(game.get_block(block_idx))
 
     btn_previous.draw()
     btn_rotate.draw()
     btn_flip.draw()
     btn_next.draw()
-   
-    if game.is_game_over():
-        screen.draw.text(
-            f"Game over!\n{game.player_name()} lost",
-            centery=CELLSIZE*3,
-            centerx=CELLSIZE*ROW + CELLSIZE*3,
-            fontsize=32,
-            color="red",
-        )
-    else:
-        screen.draw.text(
-            f"{game.player_name()}",
-            centery=CELLSIZE*3,
-            centerx=CELLSIZE*ROW + CELLSIZE*3,
-            fontsize=32,
-            color="black",
-        )
+
 
 def on_mouse_down(pos):
-    r = pos[1] // CELLSIZE
-    c = pos[0] // CELLSIZE
-    if game.can_place_at(r, c, 0):
-        game.place_at(r, c)
+    global block_idx
+
+    r = pos[1] // CELL
+    c = pos[0] // CELL
+    block = game.get_block(block_idx)
+    if game.can_place_at(r, c, block):
+        game.place_at(r, c, block)
         game.next_player()
+        block_idx = 0
 
     if btn_rotate.collidepoint(pos):
-        game.rotate_current_block()
+        game.rotate_block(block_idx)
     if btn_flip.collidepoint(pos):
-        game.flip_current_block()
+        game.flip_block(block_idx)
     if btn_next.collidepoint(pos):
-        game.next_block(1)
+        block_idx = game.next_block(block_idx)
     if btn_previous.collidepoint(pos):
-        game.next_block(-1)
+        block_idx = game.prev_block(block_idx)
+
 
 pgzrun.go()
