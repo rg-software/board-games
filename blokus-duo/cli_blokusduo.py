@@ -49,4 +49,5 @@ while not game.is_game_over():
         else:
             print("Illegal placement!")
 
+# TODO: calculate scores
 print(f"Game over! {game.player_name()} player lost")

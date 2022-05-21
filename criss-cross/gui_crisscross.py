@@ -1,5 +1,5 @@
 import pgzrun
-from pgzero.builtins import Actor
+from pgzero.builtins import Actor, Rect
 import random
 
 # from game_pig import Game
@@ -26,6 +26,17 @@ syms = [
 #     screen.draw.text(syms[pts], pos, color=color, fontname="notoemoji", fontsize=40)
 
 
+def drawcell(r, c, v):
+    x = SIZE * c
+    y = SIZE * r
+    screen.draw.textbox(
+        syms[v],
+        Rect((x, y), (SIZE, SIZE)),
+        fontname="notoemoji",
+        color="black",
+    )
+
+
 class Domino:
     def __init__(self, v1, v2):
         self.v1 = v1
@@ -33,24 +44,8 @@ class Domino:
         self.dir_horiz = True
 
     def draw(self, r, c):
-        x = SIZE * c
-        y = SIZE * r
-        screen.draw.textbox(
-            syms[self.v1],
-            Rect((x, y), (SIZE, SIZE)),
-            fontname="notoemoji",
-            color="black",
-        )
-
-        dx = SIZE * int(self.dir_horiz)
-        dy = SIZE * int(not self.dir_horiz)
-
-        screen.draw.textbox(
-            syms[self.v2],
-            Rect((x + dx, y + dy), (SIZE, SIZE)),
-            fontname="notoemoji",
-            color="black",
-        )
+        drawcell(r, c, self.v1)
+        drawcell(r + int(not self.dir_horiz), c + int(self.dir_horiz), self.v2)
 
     def flip(self):
         if self.dir_horiz:
@@ -69,7 +64,10 @@ card = [[0 for _ in range(5)] for _ in range(5)]
 def draw():
     screen.fill("white")
     btn_end.draw()
-
+    for r in range(5):
+        for c in range(5):
+            drawcell(r, c, card[r][c])
+            # screen.draw.text(str(card[r][c]), (50 * c, 50 * r), color="black")
     dice.draw(dice_coords[0], dice_coords[1])
 
     # print_die(dice[1], (100, 100), "red")
@@ -85,8 +83,17 @@ def on_mouse_down(pos, button):
         dice.flip()
     if button == mouse.LEFT:
         r, c = dice_coords
-        card[r][c] = dice.v1
-        card[r + int(not dice.dir_horiz)][c + int(dice.dir_horiz)] = dice.v2
+        r2 = r + int(not dice.dir_horiz)
+        c2 = c + int(dice.dir_horiz)
+
+        if (
+            min([r, c, r2, c2]) >= 0
+            and max([r, c, r2, c2]) < 5
+            and card[r][c] == 0
+            and card[r2][c2] == 0
+        ):
+            card[r][c] = dice.v1
+            card[r2][c2] = dice.v2
 
 
 def on_mouse_move(pos, buttons):
