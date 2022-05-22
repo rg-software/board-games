@@ -10,13 +10,13 @@ def test_game_start():
 def test_flip():
     block = Block(list(SHAPES[6]))  # L-shaped
     block.flip()
-    assert block.coord() == [(1, 0), (1, 1), (1, 2), (0, 2)]
+    assert block.coords() == [(1, 0), (1, 1), (1, 2), (0, 2)]
 
 
 def test_rotate():
     block = Block(list(SHAPES[6]))  # L-shaped
     block.rotate()
-    assert block.coord() == [(0, 1), (1, 1), (2, 1), (2, 0)]
+    assert block.coords() == [(0, 1), (1, 1), (2, 1), (2, 0)]
 
 
 def test_canplace():

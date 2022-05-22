@@ -15,10 +15,10 @@ def print_game_board():
 
 
 def print_block(block):
-    size_r = 1 + max([r for (r, _) in block.coord()])
-    size_c = 1 + max([c for (_, c) in block.coord()])
+    size_r = 1 + max([r for (r, _) in block.coords()])
+    size_c = 1 + max([c for (_, c) in block.coords()])
     blockboard = [[" " for _ in range(size_c)] for _ in range(size_r)]
-    for dr, dc in block.coord():
+    for dr, dc in block.coords():
         blockboard[dr][dc] = "*"
 
     for r in blockboard:
@@ -30,6 +30,11 @@ while not game.is_game_over():
     print(f"{game.player_name()} move, current block {block_idx + 1}:")
     block = game.get_block(block_idx)
     print_block(block)
+
+    if not game.has_legal_moves():
+        print("Cannot move. Passing turn to the opponent")
+        game.next_player()
+        continue
 
     action = input("(N)ext, (P)revious, (R)otate, (F)lip or place at (r, c): ")
     if action == "n":
@@ -49,5 +54,4 @@ while not game.is_game_over():
         else:
             print("Illegal placement!")
 
-# TODO: calculate scores
-print(f"Game over! {game.player_name()} player lost")
+print(f"Game over! Final score: {game.final_score()}")

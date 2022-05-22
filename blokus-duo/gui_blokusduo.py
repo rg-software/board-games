@@ -1,32 +1,33 @@
+from tkinter import Tk, messagebox
 import pgzrun
 from pgzero.builtins import Actor, Rect
 from game_blokusduo import Game, Cell
 
-CELL = 50
+CSIZE = 50
 MARGIN = 10
 ROW = 14
 COLUMN = 14
-WIDTH = Game.BoardWidth * CELL + CELL * 7
-HEIGHT = Game.BoardHeight * CELL + 1
+WIDTH = Game.BoardWidth * CSIZE + CSIZE * 7
+HEIGHT = Game.BoardHeight * CSIZE + 1
 TITLE = "Blokus Duo"
 
-btn_previous = Actor("btn_previous", (CELL * ROW + CELL + CELL / 2, CELL * 10))
-btn_rotate = Actor("btn_rotate", (CELL * ROW + CELL + CELL / 2 + 70, CELL * 10))
-btn_flip = Actor("btn_flip", (CELL * ROW + CELL + CELL / 2 + 70 * 2, CELL * 10))
-btn_next = Actor("btn_next", (CELL * ROW + CELL + CELL / 2 + 70 * 3, CELL * 10))
+btn_previous = Actor("btn_previous", (CSIZE * ROW + CSIZE + CSIZE / 2, CSIZE * 10))
+btn_rotate = Actor("btn_rotate", (CSIZE * ROW + CSIZE + CSIZE / 2 + 70, CSIZE * 10))
+btn_flip = Actor("btn_flip", (CSIZE * ROW + CSIZE + CSIZE / 2 + 70 * 2, CSIZE * 10))
+btn_next = Actor("btn_next", (CSIZE * ROW + CSIZE + CSIZE / 2 + 70 * 3, CSIZE * 10))
 
 game = Game()
 block_idx = 0
 
 
 def draw_cell(r, c, color):
-    pos = (c * CELL + MARGIN, r * CELL + MARGIN)
-    screen.draw.filled_rect(Rect(pos, (CELL - 2 * MARGIN, CELL - 2 * MARGIN)), color)
+    pos = (c * CSIZE + MARGIN, r * CSIZE + MARGIN)
+    screen.draw.filled_rect(Rect(pos, (CSIZE - 2 * MARGIN, CSIZE - 2 * MARGIN)), color)
 
 
 def draw_hint(r, c):
-    pos = (c * CELL + CELL / 2, r * CELL + CELL / 2)
-    screen.draw.filled_circle(pos, MARGIN * 2, "light gray")
+    pos = (c * CSIZE + CSIZE / 2, r * CSIZE + CSIZE / 2)
+    screen.draw.filled_circle(pos, MARGIN * 1.2, "light gray")
 
 
 def draw_hints(block):
@@ -36,7 +37,7 @@ def draw_hints(block):
 
 
 def draw_block(r, c, block, color):
-    for dr, dc in block.coord():
+    for dr, dc in block.coords():
         draw_cell(r + dr, c + dc, color)
 
 
@@ -45,7 +46,7 @@ def blockcolor(b):
 
 
 def draw_info(msg, color):
-    textpos = (CELL * ROW + CELL * 3, CELL * 3)  # (CELL * 3, CELL * ROW + CELL * 3)
+    textpos = (CSIZE * ROW + CSIZE * 3, CSIZE * 3)  # (CELL * 3, CELL * ROW + CELL * 3)
     screen.draw.text(msg, center=textpos, fontsize=32, color=color)
 
 
@@ -53,16 +54,17 @@ def draw():
     screen.fill("gray")
 
     for i in range(1, ROW + 1):
-        screen.draw.line((CELL * i, 0), (CELL * i, HEIGHT), "white")
+        screen.draw.line((CSIZE * i, 0), (CSIZE * i, HEIGHT), "white")
     for i in range(1, COLUMN + 1):
-        screen.draw.line((0, CELL * i), (CELL * COLUMN, CELL * i), "white")
+        screen.draw.line((0, CSIZE * i), (CSIZE * COLUMN, CSIZE * i), "white")
 
     for r in range(ROW):
         for c in range(COLUMN):
             draw_cell(r, c, blockcolor(game.board[r][c]))
 
     if game.is_game_over():
-        draw_info(f"Game over!\n{game.player_name()} lost", "red")
+        p1, p2 = game.final_score()
+        draw_info(f"Game over! Final score:\n{p1} : {p2}", "red")
     else:
         draw_info(f"{game.player_name()}", "black")
 
@@ -75,15 +77,26 @@ def draw():
     btn_next.draw()
 
 
+def msg_box(title, text):
+    root = Tk()
+    root.withdraw()
+    messagebox.showinfo(title, text)
+    root.destroy()
+
+
 def on_mouse_down(pos):
     global block_idx
 
-    r = pos[1] // CELL
-    c = pos[0] // CELL
+    r = pos[1] // CSIZE
+    c = pos[0] // CSIZE
     block = game.get_block(block_idx)
     if game.can_place_at(r, c, block):
         game.place_at(r, c, block)
+        print(game.final_score())
         game.next_player()
+        if not game.has_legal_moves() and not game.is_game_over():
+            msg_box("Info", "Cannot move. Passing turn to the opponent")
+            game.next_player()
         block_idx = 0
 
     if btn_rotate.collidepoint(pos):
