@@ -1,109 +1,76 @@
 import pgzrun
-from pgzero.builtins import Actor, Rect
-import random
+from pgzero.builtins import Actor, Rect, mouse
+from game_crisscross import Game
 
-# from game_pig import Game
-# dice = [random.randint(0, 5), random.randint(0, 5)]
-WIDTH = 800
-HEIGHT = 600
+WIDTH = 350
+HEIGHT = 500
 TITLE = "Criss Cross"
 
 SIZE = 50
-btn_end = Actor("end", (300, 500))
-
-syms = [
-    "",
-    "\U0001F354",
-    "\U0001F35E",
-    "\U0001F359",
-    "\U0001F355",
-    "\U0001F34C",
-    "\U0001F349",
-]
+CARD_Y = int(150 / 50)
+btn_roll = Actor("btn_roll", (100, 60))
+cursor_coords = (0, 0)
+game = Game()
 
 
-# def print_die(pts, pos, color):
-#     screen.draw.text(syms[pts], pos, color=color, fontname="notoemoji", fontsize=40)
-
-
-def drawcell(r, c, v):
+def drawcell(r, c, value, color):
+    syms = [
+        "",
+        "\U0001F354",  # various food types
+        "\U0001F35E",
+        "\U0001F359",
+        "\U0001F355",
+        "\U0001F34C",
+        "\U0001F349",
+    ]
     x = SIZE * c
     y = SIZE * r
-    screen.draw.textbox(
-        syms[v],
-        Rect((x, y), (SIZE, SIZE)),
-        fontname="notoemoji",
-        color="black",
-    )
+
+    rect = Rect((x, y), (SIZE, SIZE))
+    screen.draw.textbox(syms[value], rect, fontname="notoemoji", color=color)
+    screen.draw.rect(rect, color=color)
 
 
-class Domino:
-    def __init__(self, v1, v2):
-        self.v1 = v1
-        self.v2 = v2
-        self.dir_horiz = True
-
-    def draw(self, r, c):
-        drawcell(r, c, self.v1)
-        drawcell(r + int(not self.dir_horiz), c + int(self.dir_horiz), self.v2)
-
-    def flip(self):
-        if self.dir_horiz:
-            self.dir_horiz = False
-            self.v1, self.v2 = self.v2, self.v1
-        else:
-            self.dir_horiz = True
-
-
-dice_coords = (0, 0)
-dice = Domino(random.randint(1, 6), random.randint(1, 6))
-
-card = [[0 for _ in range(5)] for _ in range(5)]
+def draw_domino(r, c, domino):
+    drawcell(r, c, domino.v1, "red")
+    drawcell(r + int(not domino.dir_horiz), c + int(domino.dir_horiz), domino.v2, "red")
 
 
 def draw():
     screen.fill("white")
-    btn_end.draw()
+    btn_roll.draw()
+    screen.draw.text(f"Round: {game.round}", (70, 120), color="black")
     for r in range(5):
         for c in range(5):
-            drawcell(r, c, card[r][c])
-            # screen.draw.text(str(card[r][c]), (50 * c, 50 * r), color="black")
-    dice.draw(dice_coords[0], dice_coords[1])
+            drawcell(r + CARD_Y, c, game.card[r][c], "black")
+    if game.dice:
+        cur_r = min(CARD_Y + 4, max(CARD_Y, cursor_coords[0]))  # clamp coords
+        cur_c = min(4, max(0, cursor_coords[1]))
+        draw_domino(cur_r, cur_c, game.dice)
 
-    # print_die(dice[1], (100, 100), "red")
-    # print_die(dice[0], (150, 100), "red")
+    screen.draw.text(f"Current score: {game.card_score()}", (10, 430), color="black")
+    if game.is_game_over():
+        screen.draw.text("Game over!", (10, 470), color="red")
 
 
 def on_mouse_down(pos, button):
-    global dice
-    if btn_end.collidepoint(pos):
-        dice = Domino(random.randint(1, 6), random.randint(1, 6))
+    if btn_roll.collidepoint(pos) and not game.dice and not game.is_game_over():
+        game.roll()
+        return
 
-    if button == mouse.RIGHT:
-        dice.flip()
-    if button == mouse.LEFT:
-        r, c = dice_coords
-        r2 = r + int(not dice.dir_horiz)
-        c2 = c + int(dice.dir_horiz)
-
-        if (
-            min([r, c, r2, c2]) >= 0
-            and max([r, c, r2, c2]) < 5
-            and card[r][c] == 0
-            and card[r2][c2] == 0
-        ):
-            card[r][c] = dice.v1
-            card[r2][c2] = dice.v2
+    if button == mouse.RIGHT and game.dice:
+        game.dice.flip()
+    if button == mouse.LEFT and game.dice:
+        r, c = cursor_coords
+        game.place(max(0, r - CARD_Y), max(0, c))
 
 
-def on_mouse_move(pos, buttons):
-    global dice_coords
+def on_mouse_move(pos):
+    global cursor_coords
 
-    r = int(pos[1] / SIZE)
-    c = int(pos[0] / SIZE)
-    # print(r, c)
-    dice_coords = (r, c)
-    # (SIZE * int(pos[0] / SIZE), SIZE * int(pos[1] / SIZE))
+    r = (pos[1]) // SIZE
+    c = pos[0] // SIZE
+    cursor_coords = (r, c)
 
 
 pgzrun.go()
