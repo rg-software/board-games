@@ -4,6 +4,12 @@
 
 ## Rules Summary
 
+- The game is played between the _White_ and the _Brown_ teams consisting of four pieces each. There are three cubic and two round-shaped pieces in each team.
+
+- Both players start with positioning their pieces freely on their respective sides of the custom-shaped 2D board.
+
+
+
 TO START: The player with the white team chooses one side of the thick center line and positions the white pieces on that sideof the line.  
 Most players will put 4 pieces at the center line, but you don't have to do that.  
 Next, the player withthe brown team positions the brown pieces on the other side of the center line.
