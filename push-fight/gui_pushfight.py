@@ -102,7 +102,9 @@ def what_to_draw(cell, r, c):
         if game._selected_is() == (r, c):  color = "light green"
         draw_cell(r, c, color)
     if cell == Cell.LAVA:
-        draw_cell(r, c, "orange")
+        color = "orange"
+        if game._selected_is() == (r, c):  color = "orange red"
+        draw_cell(r, c, color)
     if cell == Cell.BROWN_ANCHOR:
         draw_square(r, c, "dark red", "tan", "grey 42")
         draw_anchor(r, c)
