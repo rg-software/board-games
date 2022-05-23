@@ -1,12 +1,6 @@
 from enum import Enum
-import numpy as np
 
-
-class GameState(Enum):
-    START = 0
-    MOVE = 1
-    PUSH = 2
-    OVER = 3
+GameState = Enum("GameState", ["START", "MOVE", "PUSH", "OVER"])
 
 
 class Cell(Enum):
@@ -43,6 +37,7 @@ class Game:
             [Cell.EMPTY for _ in range(Game.BoardWidth)]
             for _ in range(Game.BoardHeight)
         ]
+        # TODO: use table
         for c in range(Game.BoardWidth):
             for r in range(Game.BoardHeight):
                 if c == 0 or c == 9:
@@ -68,6 +63,7 @@ class Game:
     def _lava_cell(self, r, c):
         return self._cell_on_board(r, c) and self.board[r][c] == Cell.LAVA
 
+    # removes pieces from box and sets to the board
     def starting_position(self, r, c):
         if (
             (Game.in_box[0] == Cell.WHITE_SQUARE or Game.in_box[0] == Cell.WHITE_ROUND)
@@ -147,64 +143,64 @@ class Game:
             self.state = GameState.PUSH
 
     def can_push_at(self, r, c):
-        if (self._cell_on_board(r, c) and
-            not self._cell_free(r, c) and
-            not self._lava_cell(r, c) and 
-            self.selected_piece_on != (-1, -1) and
-            self.selected_piece_on != (r, c)
-            ):
+        if (
+            self._cell_on_board(r, c)
+            and not self._cell_free(r, c)
+            and not self._lava_cell(r, c)
+            and self.selected_piece_on != (-1, -1)
+            and self.selected_piece_on != (r, c)
+        ):
             p_r, p_c = self.selected_piece_on
             dr = p_r - r
             dc = p_c - c
             if (abs(dr) == 1 and dc == 0) or (dr == 0 and abs(dc) == 1):
                 i = 0
                 while (
-                    self.board[p_r - dr*i][p_c - dc*i] != Cell.EMPTY and 
-                    self.board[p_r - dr*i][p_c - dc*i] != Cell.LAVA
+                    self.board[p_r - dr * i][p_c - dc * i] != Cell.EMPTY
+                    and self.board[p_r - dr * i][p_c - dc * i] != Cell.LAVA
+                ):
+                    if (
+                        self.board[p_r - dr * i][p_c - dc * i] == Cell.BROWN_ANCHOR
+                        or self.board[p_r - dr * i][p_c - dc * i] == Cell.WHITE_ANCHOR
                     ):
-                    if (self.board[p_r - dr*i][p_c - dc*i] == Cell.BROWN_ANCHOR or 
-                        self.board[p_r - dr*i][p_c - dc*i] == Cell.WHITE_ANCHOR):
-                        return False  
-                    if not self._cell_on_board(p_r - dr*(i+1), p_c - dc*(i+1)):
                         return False
-                    i = i + 1 
+                    if not self._cell_on_board(p_r - dr * (i + 1), p_c - dc * (i + 1)):
+                        return False
+                    i = i + 1
                 return True
         return False
 
-    def push_at(self, r, c):   
+    def push_at(self, r, c):
         for a_c in range(Game.BoardWidth):
-                for a_r in range(Game.BoardHeight):
-                    if self.board[a_r][a_c] == Cell.BROWN_ANCHOR:
-                        self.board[a_r][a_c] = Cell.BROWN_SQUARE
-                    if self.board[a_r][a_c] == Cell.WHITE_ANCHOR:
-                        self.board[a_r][a_c] = Cell.WHITE_SQUARE        
-        p_r, p_c = self.selected_piece_on                
+            for a_r in range(Game.BoardHeight):
+                if self.board[a_r][a_c] == Cell.BROWN_ANCHOR:
+                    self.board[a_r][a_c] = Cell.BROWN_SQUARE
+                if self.board[a_r][a_c] == Cell.WHITE_ANCHOR:
+                    self.board[a_r][a_c] = Cell.WHITE_SQUARE
+        p_r, p_c = self.selected_piece_on
         dr = p_r - r
         dc = p_c - c
         i = 0
         p_cell = Cell.EMPTY
         c_cell = self.board[p_r][p_c]
-        while (
-            not self._cell_free(p_r - dr*i, p_c - dc*i) and 
-            not self._lava_cell(p_r - dr*i, p_c - dc*i)
-            ):
-            c_cell = self.board[p_r - dr*i][p_c - dc*i]
-            self.board[p_r - dr*i][p_c - dc*i] = p_cell
+        while not self._cell_free(p_r - dr * i, p_c - dc * i) and not self._lava_cell(
+            p_r - dr * i, p_c - dc * i
+        ):
+            c_cell = self.board[p_r - dr * i][p_c - dc * i]
+            self.board[p_r - dr * i][p_c - dc * i] = p_cell
             p_cell = c_cell
             i = i + 1
-        if self._cell_free(p_r - dr*i, p_c - dc*i):
-            self.board[p_r - dr*i][p_c - dc*i] = p_cell
+        if self._cell_free(p_r - dr * i, p_c - dc * i):
+            self.board[p_r - dr * i][p_c - dc * i] = p_cell
             self.board[p_r - dr][p_c - dc] = (
                 Cell.BROWN_ANCHOR
                 if self.current_team == self.brown_team
                 else Cell.WHITE_ANCHOR
             )
             self.next_player()
-        if self._lava_cell(p_r - dr*i, p_c - dc*i):
-            self.selected_piece_on = (p_r - dr*i, p_c - dc*i)
-            if p_cell == (
-                Cell.BROWN_SQUARE or Cell.BROWN_ROUND
-            ):
+        if self._lava_cell(p_r - dr * i, p_c - dc * i):
+            self.selected_piece_on = (p_r - dr * i, p_c - dc * i)
+            if p_cell == (Cell.BROWN_SQUARE or Cell.BROWN_ROUND):
                 self.current_team = self.brown_team
             else:
                 self.current_team = self.white_team
