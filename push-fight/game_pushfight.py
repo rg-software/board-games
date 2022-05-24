@@ -1,230 +1,180 @@
 from enum import Enum
 
 GameState = Enum("GameState", ["START", "MOVE", "PUSH", "OVER"])
+PieceColor = Enum("PieceColor", ["WHITE", "BROWN"])
+PieceShape = Enum("PieceShape", ["ROUND", "SQUARE"])
 
 
-class Cell(Enum):
-    EMPTY = 0
-    LAVA = 1
+class Piece:
+    def __init__(self, color, shape, has_anchor=False):
+        self.color = color
+        self.shape = shape
+        self.has_anchor = has_anchor
+        self.is_piece = True
 
-    WHITE_ROUND = 2
-    WHITE_SQUARE = 4
-    WHITE_ANCHOR = 6
+    def start_columns(self):
+        return range(5, 10) if self.color == PieceColor.WHITE else range(0, 5)
 
-    BROWN_SQUARE = 3
-    BROWN_ROUND = 5
-    BROWN_ANCHOR = 7
+    def is_free(self):
+        return False
+
+
+class Empty:
+    def __init__(self, is_lava=False):
+        self.is_lava = is_lava
+        self.is_piece = False
+
+    def is_free(self):
+        return not self.is_lava
 
 
 class Game:
     BoardWidth = 10
     BoardHeight = 4
-    in_box = [
-        Cell.WHITE_SQUARE,
-        Cell.BROWN_SQUARE,
-        Cell.WHITE_ROUND,
-        Cell.BROWN_ROUND,
-        Cell.WHITE_SQUARE,
-        Cell.BROWN_SQUARE,
-        Cell.WHITE_ROUND,
-        Cell.BROWN_ROUND,
-        Cell.WHITE_SQUARE,
-        Cell.BROWN_SQUARE,
-    ]
 
     def __init__(self):
+        lava1 = [[(r, 0), (r, 9)] for r in range(4)]
+        lava2 = [[(0, c + 1), (0, c + 8), (3, c), (3, c + 7)] for c in range(2)]
+        lava = set(sum(lava1 + lava2, []))
+
         self.board = [
-            [Cell.EMPTY for _ in range(Game.BoardWidth)]
-            for _ in range(Game.BoardHeight)
+            [Empty((r, c) in lava) for c in range(Game.BoardWidth)]
+            for r in range(Game.BoardHeight)
         ]
-        # TODO: use table
-        for c in range(Game.BoardWidth):
-            for r in range(Game.BoardHeight):
-                if c == 0 or c == 9:
-                    self.board[r][c] = Cell.LAVA
-                if r == 0 and (c == 1 or c == 2 or c == 8):
-                    self.board[r][c] = Cell.LAVA
-                if r == 3 and (c == 1 or c == 7 or c == 8):
-                    self.board[r][c] = Cell.LAVA
+
+        self._in_box = (
+            [Piece(PieceColor.WHITE, PieceShape.SQUARE) for _ in range(3)]
+            + [Piece(PieceColor.WHITE, PieceShape.ROUND) for _ in range(2)]
+            + [Piece(PieceColor.BROWN, PieceShape.SQUARE) for _ in range(3)]
+            + [Piece(PieceColor.BROWN, PieceShape.ROUND) for _ in range(2)]
+        )
 
         self.state = GameState.START
-        self.white_team = []
-        self.brown_team = []
         self.moves = 2
-        self.current_team = self.white_team
+        self.current_team_brown = False
         self.selected_piece_on = (-1, -1)
 
-    def _cell_on_board(self, r, c):
-        return 0 <= r < Game.BoardHeight and 0 <= c < Game.BoardWidth
+    def box_top(self):
+        return self._in_box[0]
 
-    def _cell_free(self, r, c):
-        return self._cell_on_board(r, c) and self.board[r][c] == Cell.EMPTY
+    def _current_color(self):
+        return PieceColor.BROWN if self.current_team_brown else PieceColor.WHITE
 
-    def _lava_cell(self, r, c):
-        return self._cell_on_board(r, c) and self.board[r][c] == Cell.LAVA
+    def on_board(self, r, c):
+        return r in range(Game.BoardHeight) and c in range(Game.BoardWidth)
 
-    # removes pieces from box and sets to the board
-    def starting_position(self, r, c):
-        if (
-            (Game.in_box[0] == Cell.WHITE_SQUARE or Game.in_box[0] == Cell.WHITE_ROUND)
-            and c > 4
-            and self._cell_free(r, c)
-        ):
-            self.white_team.append(Game.in_box[0])
-            self.board[r][c] = Game.in_box[0]
-            del Game.in_box[0]
-        if (
-            (Game.in_box[0] == Cell.BROWN_SQUARE or Game.in_box[0] == Cell.BROWN_ROUND)
-            and c < 5
-            and self._cell_free(r, c)
-        ):
-            self.brown_team.append(Game.in_box[0])
-            self.board[r][c] = Game.in_box[0]
-            del Game.in_box[0]
-
-        if len(self.brown_team) == 5:
-            self.state = GameState.MOVE
+    def place_new_piece(self, r, c):
+        if self.board[r][c].is_free() and c in self._in_box[0].start_columns():
+            self.board[r][c] = self._in_box.pop(0)
+            if not self._in_box:
+                self.state = GameState.MOVE
 
     def select_piece(self, r, c):
-        if self._cell_on_board(r, c) and self.board[r][c] in self.current_team:
-            if self.state == GameState.MOVE:
-                self.selected_piece_on = (r, c)
-            elif self.board[r][c] in [Cell.WHITE_SQUARE, Cell.BROWN_SQUARE]:
+        piece = self.board[r][c]
+        if piece.is_piece and piece.color == self._current_color():
+            state_move = self.state == GameState.MOVE
+            state_push = self.state == GameState.PUSH
+            push_ok = not piece.has_anchor and piece.shape == PieceShape.SQUARE
+
+            if state_move or (state_push and push_ok):
                 self.selected_piece_on = (r, c)
 
     def can_move_at(self, r, c):
-        if self._cell_free(r, c) and self.selected_piece_on != (-1, -1):
-            p_r, p_c = self.selected_piece_on
-            queue = []
-            queue.append((p_r, p_c))
-            processed = []
+        if self.board[r][c].is_free() and self.selected_piece_on != (-1, -1):
+            queue = [self.selected_piece_on]
+            processed = set()
             while len(queue) != 0:
-                x, y = queue[0]
-                if (
-                    (x + 1, y) not in processed
-                    and self._cell_on_board(x + 1, y)
-                    and self.board[x + 1][y] == Cell.EMPTY
-                ):
-                    queue.append((x + 1, y))
-                if (
-                    (x - 1, y) not in processed
-                    and self._cell_on_board(x - 1, y)
-                    and self.board[x - 1][y] == Cell.EMPTY
-                ):
-                    queue.append((x - 1, y))
-                if (
-                    (x, y + 1) not in processed
-                    and self._cell_on_board(x, y + 1)
-                    and self.board[x][y + 1] == Cell.EMPTY
-                ):
-                    queue.append((x, y + 1))
-                if (
-                    (x, y - 1) not in processed
-                    and self._cell_on_board(x, y - 1)
-                    and self.board[x][y - 1] == Cell.EMPTY
-                ):
-                    queue.append((x, y - 1))
+                cr, cc = queue[0]
+                for dr, dc in [(1, 0), (-1, 0), (0, 1), (0, -1)]:
+                    nr = cr + dr
+                    nc = cc + dc
+                    is_free = self.on_board(nr, nc) and self.board[nr][nc].is_free()
+                    if (nr, nc) not in processed and is_free:
+                        queue.append((nr, nc))
+
                 if (r, c) in queue:
                     return True
-                processed.append((x, y))
-                queue.remove((x, y))
+
+                processed.add((cr, cc))
+                queue.remove((cr, cc))
         return False
 
     def move_at(self, r, c):
         p_r, p_c = self.selected_piece_on
         self.board[r][c] = self.board[p_r][p_c]
-        self.board[p_r][p_c] = Cell.EMPTY
+        self.board[p_r][p_c] = Empty()
         self.move_done()
 
-    def move_done(self):
+    def move_done(self, count=1):
         self.selected_piece_on = (-1, -1)
-        self.moves = self.moves - 1
+        self.moves -= count
         if self.moves == 0:
             self.state = GameState.PUSH
 
-    def can_push_at(self, r, c):
-        if (
-            self._cell_on_board(r, c)
-            and not self._cell_free(r, c)
-            and not self._lava_cell(r, c)
-            and self.selected_piece_on != (-1, -1)
-            and self.selected_piece_on != (r, c)
-        ):
-            p_r, p_c = self.selected_piece_on
-            dr = p_r - r
-            dc = p_c - c
-            if (abs(dr) == 1 and dc == 0) or (dr == 0 and abs(dc) == 1):
-                i = 0
-                while (
-                    self.board[p_r - dr * i][p_c - dc * i] != Cell.EMPTY
-                    and self.board[p_r - dr * i][p_c - dc * i] != Cell.LAVA
-                ):
-                    if (
-                        self.board[p_r - dr * i][p_c - dc * i] == Cell.BROWN_ANCHOR
-                        or self.board[p_r - dr * i][p_c - dc * i] == Cell.WHITE_ANCHOR
-                    ):
-                        return False
-                    if not self._cell_on_board(p_r - dr * (i + 1), p_c - dc * (i + 1)):
-                        return False
-                    i = i + 1
-                return True
-        return False
+    def can_push_pieces(self, r, c):
+        dr = r - self.selected_piece_on[0]
+        dc = c - self.selected_piece_on[1]
+        r, c = self.selected_piece_on
 
-    def push_at(self, r, c):
-        for a_c in range(Game.BoardWidth):
-            for a_r in range(Game.BoardHeight):
-                if self.board[a_r][a_c] == Cell.BROWN_ANCHOR:
-                    self.board[a_r][a_c] = Cell.BROWN_SQUARE
-                if self.board[a_r][a_c] == Cell.WHITE_ANCHOR:
-                    self.board[a_r][a_c] = Cell.WHITE_SQUARE
-        p_r, p_c = self.selected_piece_on
-        dr = p_r - r
-        dc = p_c - c
-        i = 0
-        p_cell = Cell.EMPTY
-        c_cell = self.board[p_r][p_c]
-        while not self._cell_free(p_r - dr * i, p_c - dc * i) and not self._lava_cell(
-            p_r - dr * i, p_c - dc * i
-        ):
-            c_cell = self.board[p_r - dr * i][p_c - dc * i]
-            self.board[p_r - dr * i][p_c - dc * i] = p_cell
-            p_cell = c_cell
-            i = i + 1
-        if self._cell_free(p_r - dr * i, p_c - dc * i):
-            self.board[p_r - dr * i][p_c - dc * i] = p_cell
-            self.board[p_r - dr][p_c - dc] = (
-                Cell.BROWN_ANCHOR
-                if self.current_team == self.brown_team
-                else Cell.WHITE_ANCHOR
-            )
-            self.next_player()
-        if self._lava_cell(p_r - dr * i, p_c - dc * i):
-            self.selected_piece_on = (p_r - dr * i, p_c - dc * i)
-            if p_cell == (Cell.BROWN_SQUARE or Cell.BROWN_ROUND):
-                self.current_team = self.brown_team
-            else:
-                self.current_team = self.white_team
+        if abs(dr) + abs(dc) != 1:  # or not make_piece(self.board[r][c]).is_piece():
+            return False
+
+        push_distance = 0
+
+        while self.on_board(r, c):
+            if not self.board[r][c].is_piece:
+                return push_distance
+            if self.board[r][c].has_anchor:
+                return 0
+            r += dr
+            c += dc
+            push_distance += 1
+        return 0
+
+    def _remove_anchor(self):
+        for r in self.board:
+            for cell in r:
+                if cell.is_piece and cell.has_anchor:
+                    cell.has_anchor = False
+                    return
+
+    def push_at(self, r, c, pieces):
+        self._remove_anchor()
+
+        dr = r - self.selected_piece_on[0]
+        dc = c - self.selected_piece_on[1]
+        r, c = self.selected_piece_on
+        self.board[r][c].has_anchor = True
+
+        prev_piece = Empty()
+        for _ in range(pieces + 1):  # including empty piece
+            piece = self.board[r][c]
+            self.board[r][c] = prev_piece
+            prev_piece = piece
+            r += dr
+            c += dc
+
+        self._next_player()
+        if prev_piece.is_lava:  # self.board[r][c].is_lava:
             self.state = GameState.OVER
 
-    def next_player(self):
+    def _next_player(self):
         self.state = GameState.MOVE
         self.selected_piece_on = (-1, -1)
         self.moves = 2
-        self.current_team = (
-            self.white_team if self.current_team == self.brown_team else self.brown_team
-        )
+        self.current_team_brown = not self.current_team_brown
 
     def is_game_over(self):
-        return True if self.state == GameState.OVER else False
+        return self.state == GameState.OVER
 
     def player_name(self):
-        return "BROWN" if Cell.BROWN_ROUND in self.current_team else "WHITE"
+        return "Brown" if self.current_team_brown else "White"
 
-    def hint_text(self):
+    def moves_left(self):
         return self.moves
 
-    def _state_is(self):
+    def game_state(self):
         return self.state
 
-    def _selected_is(self):
+    def selected_cell(self):
         return self.selected_piece_on

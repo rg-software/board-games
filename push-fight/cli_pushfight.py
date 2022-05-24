@@ -32,21 +32,21 @@ def print_game_board():
 
 while not game.is_game_over():
     print_game_board()
-    if game._state_is() == GameState.START:
+    if game.game_state() == GameState.START:
         coords = input(f"Arrange piece: ")
         r, c = coords.split()
-        game.starting_position(int(r), int(c))
+        game.place_new_piece(int(r), int(c))
 
-    if game._state_is() == GameState.MOVE:
+    if game.game_state() == GameState.MOVE:
         coords = input(f"{game.player_name()} move: ")
         r, c = coords.split()
         if game.can_move_at(r, c): 
             game.move_at(r, c)            
         else: game.select_piece(r, c)
-    if game._state_is() == GameState.PUSH:
+    if game.game_state() == GameState.PUSH:
         coords = input(f"{game.player_name()} push: ")
         r, c = coords.split()
-        if game.can_push_at(r, c): 
+        if game.can_push_pieces(r, c): 
             game.push_at(r, c)
         else: game.select_piece(r, c)
 
