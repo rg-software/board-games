@@ -69,15 +69,19 @@ class Game:
             if not self._in_box:
                 self.state = GameState.MOVE
 
-    def select_piece(self, r, c):
+    def _is_selectable(self, r, c):
         piece = self.board[r][c]
+        result = False
         if piece.is_piece and piece.color == self._current_color():
             state_move = self.state == GameState.MOVE
             state_push = self.state == GameState.PUSH
             push_ok = not piece.has_anchor and piece.shape == PieceShape.SQUARE
+            result = state_move or (state_push and push_ok)
+        return result
 
-            if state_move or (state_push and push_ok):
-                self.selected_piece_on = (r, c)
+    def select_piece(self, r, c):
+        if self._is_selectable(r, c):
+            self.selected_piece_on = (r, c)
 
     def can_move_at(self, r, c):
         if self.board[r][c].is_free() and self.selected_piece_on != (-1, -1):
@@ -106,17 +110,36 @@ class Game:
         self.move_done()
 
     def move_done(self, count=1):
-        self.selected_piece_on = (-1, -1)
         self.moves -= count
         if self.moves == 0:
             self.state = GameState.PUSH
+            if not self._can_push():
+                self.state = GameState.OVER
+        self.selected_piece_on = (-1, -1)
+
+    def _can_push_from_loc(self, r, c):
+        if self._is_selectable(r, c):
+            for dr, dc in [(1, 0), (-1, 0), (0, 1), (0, -1)]:
+                self.selected_piece_on = (r, c)
+                nr = r + dr
+                nc = c + dc
+                if self.can_push_pieces(nr, nc) > 1:
+                    return True
+        return False
+
+    def _can_push(self):
+        for r in range(Game.BoardHeight):
+            for c in range(Game.BoardWidth):
+                if self._can_push_from_loc(r, c):
+                    return True
+        return False
 
     def can_push_pieces(self, r, c):
         dr = r - self.selected_piece_on[0]
         dc = c - self.selected_piece_on[1]
         r, c = self.selected_piece_on
 
-        if abs(dr) + abs(dc) != 1:  # or not make_piece(self.board[r][c]).is_piece():
+        if abs(dr) + abs(dc) != 1:
             return False
 
         push_distance = 0
@@ -155,7 +178,9 @@ class Game:
             c += dc
 
         self._next_player()
-        if prev_piece.is_lava:  # self.board[r][c].is_lava:
+        if prev_piece.is_lava:
+            if self.board[r - dr][c - dc].color != self._current_color():
+                self._next_player()  # make sure the right is the winner
             self.state = GameState.OVER
 
     def _next_player(self):

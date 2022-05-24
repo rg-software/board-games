@@ -134,8 +134,8 @@ def on_mouse_down(pos):
             game.select_piece(r, c)
 
     if game.game_state() == GameState.PUSH:
-        if d := game.can_push_pieces(r, c):  # must be selected
-            game.push_at(r, c, d)
+        if (pieces := game.can_push_pieces(r, c)) > 1:  # must be selected
+            game.push_at(r, c, pieces)
         else:
             game.select_piece(r, c)
 
