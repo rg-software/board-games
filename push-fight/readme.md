@@ -6,7 +6,7 @@
 
 - The game is played between the _White_ and the _Brown_ teams consisting of five pieces each. There are three cubic and two round-shaped pieces in each team.
 
-- Both players start with positioning their pieces freely on their respective sides of the custom-shaped 2D board. The orange cells are not included into the board, and should be treated as forbidden "outside" or "lava" areas.
+- Both players start with positioning their pieces freely on their respective sides of the custom-shaped 2D board. The orange cells are not included into the playable zone, and should be treated as forbidden "lava" areas.
 
 ![game board](board.png)
 
@@ -14,7 +14,7 @@
 
   - A move involves relocating any piece from its position to any other board cell reachable via a "path" of adjacent empty cells. Cells are considered adjacent if they share the same edge.
 
-  - A push involves moving a cubic piece to one of its adjacent cells while physically pushing any affected pieces of either color. Moving into an empty cell is not considered push.
+  - A push involves moving a cubic piece to one of its adjacent cells while physically pushing any affected pieces of either color. Moving into an empty cell is not considered push. Pushing a piece outside the board is not allowed.
 
   - After the push, the pushing piece is covered with an "anchor" token. Anchored pieces cannot be pushed (directly or indirectly). There is only one anchor in the game, and the opponent team will reuse it during its push action.
 
