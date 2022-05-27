@@ -12,11 +12,11 @@
 
 - During a turn, a player can make up to two optional _moves_ and one compulsory _push_:
 
-  - A move involves relocating any piece from its position to any other board cell reachable via a "path" of adjacent empty cells. Cells are considered adjacent if they share the same edge (not corner).
+  - A move involves relocating any piece from its position to any other board cell reachable via a "path" of adjacent empty cells. Cells are considered adjacent if they share the same edge.
 
   - A push involves moving a cubic piece to one of its adjacent cells while physically pushing any affected pieces of either color. Moving into an empty cell is not considered push.
 
-  - After the push, the pusher piece is covered with an "anchor" token. Anchored pieces cannot be pushed (directly or indirectly). There is only one anchor in the game, and the opponent team will reuse it during its push action.
+  - After the push, the pushing piece is covered with an "anchor" token. Anchored pieces cannot be pushed (directly or indirectly). There is only one anchor in the game, and the opponent team will reuse it during its push action.
 
 - The game is over when one of the players manages to push any of the opponent's pieces into one of the "lava" areas or makes it impossible to the opponent's team to complete its turn. This player is declared winner.
 

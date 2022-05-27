@@ -180,7 +180,7 @@ class Game:
         self._next_player()
         if prev_piece.is_lava:
             if self.board[r - dr][c - dc].color != self._current_color():
-                self._next_player()  # make sure the right is the winner
+                self._next_player()  # make sure the right player is the winner
             self.state = GameState.OVER
 
     def _next_player(self):

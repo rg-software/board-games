@@ -1,23 +1,42 @@
-from game_pushfight import Game, Cell
+from game_pushfight import Game, GameState
 
 
-def test_placement():
-    game = Game()
-    game.place_at(0, 0)
+class GameExt(Game):
+    def __init__(self):
+        super().__init__()  # use the same initial setup
+        # white team
+        self.place_new_piece(0, 5)
+        self.place_new_piece(1, 5)
+        self.place_new_piece(2, 5)
+        self.place_new_piece(3, 5)
+        self.place_new_piece(3, 6)
 
-    assert game.board[0][0] == Cell.WHITE_SQUARE
-    assert game.board[0][1] == Cell.EMPTY
+        # brown team
+        self.place_new_piece(0, 4)
+        self.place_new_piece(1, 4)
+        self.place_new_piece(2, 4)
+        self.place_new_piece(3, 4)
+        self.place_new_piece(3, 3)
 
 
-def test_canplace():
-    game = Game()
+def test_basic_gameplay():
+    game = GameExt()
+    assert not game.current_team_brown and game.moves_left() == 2
 
-    assert game.can_move_at(0, 0)
-    game.move_at(0, 0)
-    assert not game.can_move_at(0, 0)
+    game.select_piece(3, 6)
+    assert not game.can_move_at(3, 7)
+    assert game.can_move_at(0, 7)
+    game.move_at(0, 7)
 
+    game.select_piece(3, 5)
+    game.move_at(0, 6)
 
-def test_player_swap():
-    game = Game()
-    game.move_at(1, 0)
-    assert game.can_move_at(0, 0)  
+    assert game.game_state() == GameState.PUSH
+    game.select_piece(2, 5)
+    game.push_at(2, 4, game.can_push_pieces(2, 4))
+
+    game.move_done(game.moves_left())
+    game.select_piece(0, 4)
+    game.push_at(0, 5, game.can_push_pieces(0, 5))
+    assert game.game_state() == GameState.OVER
+    assert not game.current_team_brown  # white team lost
