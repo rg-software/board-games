@@ -9,6 +9,7 @@ def print_board(board):
 
 
 while not game.winner_char():  # game_over():
+    print()
     print(f"player: {game.player_char}")
     print_board(game.board)
     v = input("Your move (r, c, dir): ").split()
