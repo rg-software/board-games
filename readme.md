@@ -1,6 +1,6 @@
 # Simple Board Games
 
-This is a collection of simple board games implemented in Python with [Pygame Zero](https://pygame-zero.readthedocs.io/en/stable/). These games are selected as possible exercises for entry-level programming education. More details about the criteria for inclusion and other considerations can be found in [this paper].
+This is a collection of simple board games implemented in Python with [Pygame Zero](https://pygame-zero.readthedocs.io/en/stable/). These games are selected as possible exercises for entry-level programming education. More details about the criteria for inclusion and other considerations can be found in [this paper](https://arxiv.org/abs/2208.00823).
 
 In a nutshell:
 
